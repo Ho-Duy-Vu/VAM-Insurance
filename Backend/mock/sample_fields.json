@@ -1,0 +1,96 @@
+{
+  "document_type": "Animal Health Certificate",
+  "policy": {
+    "carrier": "Office of the State Veterinarian",
+    "issue_date": "2017-12-21",
+    "certificate_number": "AHC-2017-WS-001",
+    "validity_period": "90 days",
+    "purpose": "Animal Transport/Movement Authorization"
+  },
+  "animals": [
+    {
+      "species": "Reindeer",
+      "name": "DASHER", 
+      "microchip_id": "SANTA",
+      "rabies_vaccination": "NEGATIVE",
+      "vaccination_year": "3 year",
+      "health_status": "Cleared for transport",
+      "special_markings": "Primary lead animal"
+    },
+    {
+      "species": "Reindeer",
+      "name": "VIXEN",
+      "microchip_id": null,
+      "rabies_vaccination": "Blue line",
+      "vaccination_year": "Current",
+      "health_status": "Cleared for transport", 
+      "special_markings": "Standard certification"
+    },
+    {
+      "species": "Reindeer", 
+      "name": "COMET",
+      "microchip_id": null,
+      "rabies_vaccination": "Blue line",
+      "vaccination_year": "Current",
+      "health_status": "Cleared for transport",
+      "special_markings": "Standard certification"
+    },
+    {
+      "species": "Reindeer",
+      "name": "Cupid", 
+      "microchip_id": null,
+      "rabies_vaccination": "Blue line",
+      "vaccination_year": "Current", 
+      "health_status": "Cleared for transport",
+      "special_markings": "Standard certification"
+    },
+    {
+      "species": "Reindeer",
+      "name": "DONNER",
+      "microchip_id": null,
+      "rabies_vaccination": "Blue line with arrow",
+      "vaccination_year": "Current",
+      "health_status": "Cleared for transport",
+      "special_markings": "Special status indicator"
+    }
+  ],
+  "veterinary_certification": {
+    "veterinarian_name": "Dr. Certein, VMD",
+    "clinic_name": "Office of the State Veterinarian",
+    "address": "5251 DR. MARTIN Luther King JR. AVE",
+    "certification_date": "2017-12-21",
+    "license_number": "VMD-AK-V285",
+    "signature_verified": true,
+    "official_seal": true
+  },
+  "attestation": {
+    "health_examination_completed": true,
+    "disease_testing_current": true,
+    "vaccination_records_verified": true,
+    "transport_authorization": true,
+    "veterinarian_signature": true,
+    "regulatory_compliance": "Interstate animal health requirements met",
+    "special_notes": "Seasonal transport certification - Winter Solstice timing"
+  },
+  "risk_assessment": {
+    "disease_risk": "Low",
+    "quarantine_required": false,
+    "movement_restrictions": "None",
+    "follow_up_required": false,
+    "contact_tracing": "Not applicable"
+  },
+  "compliance": {
+    "state_regulations": "Compliant",
+    "federal_requirements": "Compliant", 
+    "destination_approval": "Verified",
+    "transport_protocol": "Standard livestock protocols"
+  },
+  "metadata": {
+    "document_id": "AHC-2017-WS-001",
+    "pages_total": 1,
+    "confidence_score": 0.95,
+    "processing_time": "2.3 seconds",
+    "ai_model_version": "v2.1.0",
+    "extraction_timestamp": "2025-01-15T10:30:00Z"
+  }
+}
