@@ -12,6 +12,7 @@ import os
 import uuid
 import asyncio
 import aiofiles
+import time
 from datetime import datetime
 from typing import Optional, List
 import json
@@ -31,6 +32,21 @@ except ImportError:
     IMAGE_PROCESSING_AVAILABLE = False
     print("Warning: Pillow not installed. Image processing will be limited.")
 
+try:
+    from docx import Document as DocxDocument
+    from docx.shared import Inches
+    DOCX_PROCESSING_AVAILABLE = True
+except ImportError:
+    DOCX_PROCESSING_AVAILABLE = False
+    print("Warning: python-docx not installed. DOCX processing will be limited.")
+
+try:
+    from pdf2image import convert_from_path
+    PDF2IMAGE_AVAILABLE = True
+except ImportError:
+    PDF2IMAGE_AVAILABLE = False
+    print("Warning: pdf2image not installed. Alternative PDF processing will be used.")
+
 from app.database import init_db, get_db
 from app.models import Document, Job, Page
 from app.schemas import (
@@ -45,13 +61,13 @@ from app.schemas import (
 async def process_pdf_to_images(pdf_path: str, document_id: str) -> List[str]:
     """
     Convert PDF pages to individual images
-    Returns list of image file paths
+    Returns list of image URLs (relative to /data/)
     """
     if not PDF_PROCESSING_AVAILABLE:
-        # Fallback: create a single page for PDF
-        return [pdf_path]
+        # Fallback: return original PDF path
+        return [f"/data/docs/{document_id}.pdf"]
     
-    image_paths = []
+    image_urls = []
     
     try:
         # Open PDF
@@ -61,49 +77,145 @@ async def process_pdf_to_images(pdf_path: str, document_id: str) -> List[str]:
             # Get page
             page = pdf_doc.load_page(page_num)
             
-            # Convert to image (300 DPI for good quality)
-            mat = fitz.Matrix(2.0, 2.0)  # 2x zoom = ~300 DPI
+            # Convert to image (150 DPI for good quality and reasonable file size)
+            mat = fitz.Matrix(1.5, 1.5)  # 1.5x zoom = ~150 DPI
             pix = page.get_pixmap(matrix=mat)
             
-            # Save as PNG
-            image_path = f"data/images/{document_id}_page_{page_num + 1}.png"
+            # Save as PNG in images folder
+            image_filename = f"{document_id}_page_{page_num + 1}.png"
+            image_path = f"data/images/{image_filename}"
             pix.save(image_path)
-            image_paths.append(image_path)
+            
+            # Return URL path
+            image_urls.append(f"/data/images/{image_filename}")
             
         pdf_doc.close()
+        
+        # If no pages were processed, return fallback
+        if not image_urls:
+            return [f"/data/docs/{document_id}.pdf"]
         
     except Exception as e:
         print(f"Error processing PDF: {e}")
         # Fallback: return original PDF path
-        return [pdf_path]
+        return [f"/data/docs/{document_id}.pdf"]
     
-    return image_paths
+    return image_urls
 
 async def process_image_file(image_path: str, document_id: str, page_index: int = 0) -> str:
     """
-    Process single image file (resize if needed)
-    Returns processed image path
+    Process single image file (basic validation)
+    Returns image URL path
     """
-    if not IMAGE_PROCESSING_AVAILABLE:
-        return image_path
-        
+    # For now, just return the URL path without processing
+    # In the future, could add resize/optimization here
+    file_ext = os.path.splitext(image_path)[1]
+    return f"/data/images/{document_id}{file_ext}"
+
+async def process_docx_to_images(docx_path: str, document_id: str) -> List[str]:
+    """
+    Convert DOCX pages to individual images
+    Returns list of image URLs (relative to /data/)
+    """
+    if not DOCX_PROCESSING_AVAILABLE:
+        # Fallback: return original DOCX path
+        return [f"/data/docs/{document_id}.docx"]
+    
+    image_urls = []
+    
     try:
-        # Open and potentially resize image
-        with Image.open(image_path) as img:
-            # If image is too large, resize it
-            max_size = (2048, 2048)
-            if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
-                img.thumbnail(max_size, Image.Resampling.LANCZOS)
-                
-                # Save processed image
-                processed_path = f"data/images/{document_id}_page_{page_index + 1}_processed.png"
-                img.save(processed_path, "PNG")
-                return processed_path
-                
-    except Exception as e:
-        print(f"Error processing image: {e}")
+        # For DOCX, we'll create a preview image of the first page
+        # This is a simplified approach - in production you might want to use more sophisticated methods
         
-    return image_path
+        # Load DOCX document
+        doc = DocxDocument(docx_path)
+        
+        # Create a simple preview by extracting text and creating an image
+        # For now, we'll just create one preview image
+        preview_filename = f"{document_id}_preview.png"
+        preview_path = f"data/images/{preview_filename}"
+        
+        # Create a simple text-based preview image
+        if IMAGE_PROCESSING_AVAILABLE:
+            from PIL import Image, ImageDraw, ImageFont
+            
+            # Get document text (first few paragraphs)
+            text_content = ""
+            paragraph_count = 0
+            for paragraph in doc.paragraphs:
+                if paragraph.text.strip() and paragraph_count < 10:  # First 10 paragraphs
+                    text_content += paragraph.text.strip() + "\n\n"
+                    paragraph_count += 1
+            
+            if not text_content:
+                text_content = "DOCX Document Preview\n\nDocument contains formatted content."
+            
+            # Create image with text
+            img_width, img_height = 800, 1000
+            img = Image.new('RGB', (img_width, img_height), color='white')
+            draw = ImageDraw.Draw(img)
+            
+            try:
+                # Try to use a system font
+                font = ImageFont.load_default()
+            except:
+                font = None
+            
+            # Draw text with word wrapping
+            y_position = 50
+            lines = text_content.split('\n')
+            for line in lines[:30]:  # Limit to 30 lines
+                if y_position > img_height - 50:
+                    break
+                draw.text((50, y_position), line[:80], fill='black', font=font)  # Limit line length
+                y_position += 25
+            
+            # Save preview image
+            img.save(preview_path, "PNG")
+            image_urls.append(f"/data/images/{preview_filename}")
+        else:
+            # If PIL not available, return DOCX file path
+            return [f"/data/docs/{document_id}.docx"]
+        
+    except Exception as e:
+        print(f"Error processing DOCX: {e}")
+        # Fallback: return original DOCX path
+        return [f"/data/docs/{document_id}.docx"]
+    
+    return image_urls if image_urls else [f"/data/docs/{document_id}.docx"]
+
+async def process_pdf_alternative(pdf_path: str, document_id: str) -> List[str]:
+    """
+    Alternative PDF processing using pdf2image
+    Returns list of image URLs (relative to /data/)
+    """
+    if not PDF2IMAGE_AVAILABLE:
+        return await process_pdf_to_images(pdf_path, document_id)
+    
+    image_urls = []
+    
+    try:
+        # Convert PDF pages to images using pdf2image
+        images = convert_from_path(pdf_path, dpi=150, first_page=1, last_page=10)  # Limit to first 10 pages
+        
+        for i, image in enumerate(images):
+            image_filename = f"{document_id}_page_{i + 1}.png"
+            image_path = f"data/images/{image_filename}"
+            
+            # Save image
+            image.save(image_path, "PNG")
+            image_urls.append(f"/data/images/{image_filename}")
+            
+        # If no pages were processed, fallback
+        if not image_urls:
+            return [f"/data/docs/{document_id}.pdf"]
+        
+    except Exception as e:
+        print(f"Error in alternative PDF processing: {e}")
+        # Fallback to original PDF processing
+        return await process_pdf_to_images(pdf_path, document_id)
+    
+    return image_urls
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -142,11 +254,18 @@ jobs_storage = {}
 
 @app.get("/")
 async def root():
+    """Fast health check endpoint"""
     return {
+        "status": "healthy",
         "message": "ADE Insurance Document Intelligence API",
         "version": "1.0.0",
         "docs": "/docs"
     }
+
+@app.get("/health")
+async def health_check():
+    """Fast health check for monitoring"""
+    return {"status": "healthy", "timestamp": time.time()}
 
 @app.post("/documents/upload", response_model=UploadResponse)
 async def upload_document(file: UploadFile = File(...)):
@@ -159,15 +278,14 @@ async def upload_document(file: UploadFile = File(...)):
         
         # Get file extension
         file_ext = os.path.splitext(file.filename)[1].lower()
-        if file_ext not in ['.pdf', '.png', '.jpg', '.jpeg']:
-            raise HTTPException(status_code=400, detail="Unsupported file format. Only PDF, PNG, JPG are allowed.")
+        if file_ext not in ['.pdf', '.docx', '.png', '.jpg', '.jpeg']:
+            raise HTTPException(status_code=400, detail="Unsupported file format. Only PDF, DOCX, PNG, JPG are allowed.")
         
-        # Save file to local storage
-        # Save images to images folder, documents to docs folder
-        if file_ext in ['.png', '.jpg', '.jpeg']:
-            file_path = f"data/images/{document_id}{file_ext}"
-        else:
+        # Save file to appropriate storage location
+        if file_ext in ['.pdf', '.docx']:
             file_path = f"data/docs/{document_id}{file_ext}"
+        else:
+            file_path = f"data/images/{document_id}{file_ext}"
         
         async with aiofiles.open(file_path, 'wb') as f:
             content = await file.read()
@@ -183,39 +301,60 @@ async def upload_document(file: UploadFile = File(...)):
         )
         db.add(document)
         
-        # Process file and create page records
+        # Create page records based on file type
         if file_ext == '.pdf':
-            # Process PDF to images
-            image_paths = await process_pdf_to_images(file_path, document_id)
-            
-            # Create page records for each PDF page
-            for i, img_path in enumerate(image_paths):
-                # Convert absolute path to URL path
-                if img_path.startswith('data/'):
-                    image_url = f"/{img_path}"
+            # For PDF: try to extract pages, fallback to single page if failed
+            try:
+                # Try alternative PDF processing first if available
+                if PDF2IMAGE_AVAILABLE:
+                    image_urls = await process_pdf_alternative(file_path, document_id)
                 else:
-                    image_url = f"/data/docs/{document_id}{file_ext}"
-                    
+                    image_urls = await process_pdf_to_images(file_path, document_id)
+                
+                # Create page for each extracted image/page
+                for i, image_url in enumerate(image_urls):
+                    page = Page(
+                        document_id=document_id,
+                        page_index=i,
+                        image_url=image_url
+                    )
+                    db.add(page)
+            except Exception as e:
+                print(f"PDF processing failed: {e}")
+                # Fallback: single page pointing to PDF
                 page = Page(
                     document_id=document_id,
-                    page_index=i,
-                    image_url=image_url
+                    page_index=0,
+                    image_url=f"/data/docs/{document_id}{file_ext}"
+                )
+                db.add(page)
+        elif file_ext == '.docx':
+            # For DOCX: try to create preview images
+            try:
+                image_urls = await process_docx_to_images(file_path, document_id)
+                # Create page for each preview image
+                for i, image_url in enumerate(image_urls):
+                    page = Page(
+                        document_id=document_id,
+                        page_index=i,
+                        image_url=image_url
+                    )
+                    db.add(page)
+            except Exception as e:
+                print(f"DOCX processing failed: {e}")
+                # Fallback: single page pointing to DOCX
+                page = Page(
+                    document_id=document_id,
+                    page_index=0,
+                    image_url=f"/data/docs/{document_id}{file_ext}"
                 )
                 db.add(page)
         else:
-            # Single image file
-            processed_image_path = await process_image_file(file_path, document_id, 0)
-            
-            # Convert absolute path to URL path
-            if processed_image_path.startswith('data/'):
-                image_url = f"/{processed_image_path}"
-            else:
-                image_url = f"/data/images/{document_id}{file_ext}"
-            
+            # For images: single page pointing to the image
             page = Page(
                 document_id=document_id,
                 page_index=0,
-                image_url=image_url
+                image_url=f"/data/images/{document_id}{file_ext}"
             )
             db.add(page)
         
@@ -343,7 +482,7 @@ async def get_document(document_id: str):
 @app.get("/documents/{document_id}/overlay")
 async def get_document_overlay(document_id: str):
     """
-    Get document overlay regions (mock data)
+    Get document overlay regions (mock data with unique IDs per document)
     """
     db = get_db()
     document = db.query(Document).filter(Document.id == document_id).first()
@@ -354,10 +493,18 @@ async def get_document_overlay(document_id: str):
     if document.status != "DONE":
         raise HTTPException(status_code=400, detail="Document not yet processed")
     
-    # Return mock overlay data
+    # Return mock overlay data with unique IDs per document
     try:
         with open("mock/sample_overlay.json", "r") as f:
             overlay_data = json.load(f)
+        
+        # Generate unique region IDs for this document
+        import uuid
+        for region in overlay_data["regions"]:
+            # Create unique ID combining document_id and original region id
+            unique_id = f"{document_id}_{region['id']}_{str(uuid.uuid4())[:8]}"
+            region["id"] = unique_id
+            
         return overlay_data
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="Mock overlay data not found")
