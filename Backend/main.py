@@ -432,7 +432,16 @@ app = FastAPI(
 
 # Configure CORS for Frontend
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
-allowed_origins = [FRONTEND_URL, "http://localhost:5174", "http://localhost:3000"]
+# Production: Add your Vercel domain here after deployment
+allowed_origins = [
+    FRONTEND_URL,
+    "http://localhost:5173",
+    "http://localhost:5174", 
+    "http://localhost:3000",
+    "https://*.vercel.app",  # Allow all Vercel preview deployments
+    # Add your production domain after deployment:
+    # "https://vam-insurance.vercel.app"
+]
 
 app.add_middleware(
     CORSMiddleware,
