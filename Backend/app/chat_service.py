@@ -5,9 +5,10 @@ Chat Service for Insurance Advisor AI
 from google import genai
 from google.genai import types
 from typing import Dict, Any, Optional, List
+from decouple import config
 
-# Use same API key as ai_service
-GEMINI_API_KEY = "AIzaSyAVMe9ck7e7yX4F9__HIEkxUwq1XCSi4v0"
+# Use API key from environment variable
+GEMINI_API_KEY = config('GEMINI_API_KEY')
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Insurance Chatbot Prompt
@@ -153,7 +154,7 @@ async def chat_with_insurance_advisor(
         
         # Call Gemini API
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-2.5-flash-lite',
             contents=full_prompt,
             config=types.GenerateContentConfig(
                 temperature=0.7,  # More creative for conversation

@@ -11,6 +11,7 @@ import base64
 import io
 from typing import Dict, Any, Optional
 import os
+from decouple import config
 
 # Person Info Extraction Prompt - For CCCD/ID Cards/Driver License
 PERSON_INFO_EXTRACTION_PROMPT = """You are an expert at extracting personal information from Vietnamese ID cards (CCCD), Driver Licenses, and similar documents.
@@ -207,8 +208,9 @@ IMPORTANT:
 
 Now extract vehicle information from this document:"""
 
-# Configure Gemini API
-GEMINI_API_KEY = "AIzaSyAVMe9ck7e7yX4F9__HIEkxUwq1XCSi4v0"
+# Configure Gemini API - Load from environment variable
+GEMINI_API_KEY = config('GEMINI_API_KEY')
+print(f"🔑 DEBUG: GEMINI_API_KEY loaded: {GEMINI_API_KEY[:20]}...{GEMINI_API_KEY[-10:] if len(GEMINI_API_KEY) > 30 else ''}")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Insurance Chatbot Prompt - Smart advisor based on document analysis
@@ -681,9 +683,9 @@ async def analyze_auto_document(image_path: str) -> Dict[str, Any]:
         image.save(img_byte_arr, format='JPEG')
         img_byte_arr = img_byte_arr.getvalue()
         
-        # Generate content with Gemini 2.0 Flash
+        # Generate content with Gemini 2.5 Flash Lite
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=[
                 types.Content(
                     role='user',
@@ -798,9 +800,9 @@ async def extract_markdown_content(image_path: str) -> str:
         image.save(img_byte_arr, format='JPEG')
         img_byte_arr = img_byte_arr.getvalue()
         
-        # Generate content with Gemini 2.0 Flash
+        # Generate content with Gemini 2.5 Flash Lite
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-2.5-flash-lite',
             contents=[
                 types.Content(
                     role='user',
@@ -926,7 +928,7 @@ async def extract_person_info(image_path: str) -> Dict[str, Any]:
         for attempt in range(max_retries):
             try:
                 response = client.models.generate_content(
-                    model='gemini-2.0-flash-exp',
+                    model='gemini-2.5-flash-lite',
                     contents=[
                         types.Content(
                             role='user',
@@ -1114,7 +1116,7 @@ async def extract_vehicle_info(image_path: str) -> Dict[str, Any]:
         
         # Call Gemini API
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-2.5-flash-lite',
             contents=[
                 types.Content(
                     role='user',
@@ -1264,7 +1266,7 @@ async def recommend_insurance_by_address(image_path: str) -> Dict[str, Any]:
         
         # Call Gemini API
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-2.5-flash-lite',
             contents=[
                 types.Content(
                     role='user',
@@ -1356,6 +1358,70 @@ async def recommend_insurance_by_person_info(person_data: Dict[str, Any]) -> Dic
         
         print(f"   🏠 Analyzing: placeOfOrigin='{place_of_origin}', address='{address}'")
         
+        # Helper function to extract province from location text
+        def extract_province(location_text: str) -> str:
+            """Extract province name from address text"""
+            if not location_text:
+                return ""
+            
+            # List of Vietnamese provinces (63 provinces/cities)
+            provinces = [
+                'Hà Nội', 'TP Hồ Chí Minh', 'Hải Phòng', 'Đà Nẵng', 'Cần Thơ',
+                'An Giang', 'Bà Rịa-Vũng Tàu', 'Bắc Giang', 'Bắc Kạn', 'Bạc Liêu',
+                'Bắc Ninh', 'Bến Tre', 'Bình Định', 'Bình Dương', 'Bình Phước',
+                'Bình Thuận', 'Cà Mau', 'Cao Bằng', 'Đắk Lắk', 'Đắk Nông',
+                'Điện Biên', 'Đồng Nai', 'Đồng Tháp', 'Gia Lai', 'Hà Giang',
+                'Hà Nam', 'Hà Tĩnh', 'Hải Dương', 'Hậu Giang', 'Hòa Bình',
+                'Hưng Yên', 'Khánh Hòa', 'Kiên Giang', 'Kon Tum', 'Lai Châu',
+                'Lâm Đồng', 'Lạng Sơn', 'Lào Cai', 'Long An', 'Nam Định',
+                'Nghệ An', 'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên',
+                'Quảng Bình', 'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị',
+                'Sóc Trăng', 'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên',
+                'Thanh Hóa', 'Thừa Thiên Huế', 'Tiền Giang', 'Trà Vinh', 'Tuyên Quang',
+                'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'
+            ]
+            
+            # Special mappings for common variations
+            province_aliases = {
+                'hồ chí minh': 'TP Hồ Chí Minh',
+                'tp.hcm': 'TP Hồ Chí Minh',
+                'tp hcm': 'TP Hồ Chí Minh',
+                'hcm': 'TP Hồ Chí Minh',
+                'sài gòn': 'TP Hồ Chí Minh',
+                'saigon': 'TP Hồ Chí Minh',
+                'tp. hồ chí minh': 'TP Hồ Chí Minh',
+                'thành phố hồ chí minh': 'TP Hồ Chí Minh',
+                'bà rịa vũng tàu': 'Bà Rịa - Vũng Tàu',
+                'vũng tàu': 'Bà Rịa - Vũng Tàu',
+                'bà rịa-vũng tàu': 'Bà Rịa - Vũng Tàu',
+                'huế': 'Thừa Thiên Huế',
+                'thừa thiên-huế': 'Thừa Thiên Huế'
+            }
+            
+            # Normalize location text
+            location_normalized = location_text.strip()
+            location_lower = location_normalized.lower()
+            
+            # Check aliases first
+            for alias, canonical_name in province_aliases.items():
+                if alias in location_lower:
+                    return canonical_name
+            
+            # Try exact match
+            for province in provinces:
+                if province.lower() in location_lower:
+                    return province
+            
+            # Try partial match (e.g., "Hà Nội" in "Thành phố Hà Nội")
+            for province in provinces:
+                province_lower = province.lower()
+                # Remove prefixes
+                province_clean = province_lower.replace('tp ', '').replace('tỉnh ', '').replace('thành phố ', '')
+                if province_clean in location_lower:
+                    return province
+            
+            return ""
+        
         # Helper function to determine region from location text
         def get_region(location_text: str) -> str:
             if not location_text:
@@ -1401,6 +1467,56 @@ async def recommend_insurance_by_person_info(person_data: Dict[str, Any]) -> Dic
         
         print(f"   📍 Quê quán region: {place_region}, Address region: {addr_region}")
         
+        # 🔥 NEW: Integrate DisasterLocation API
+        # Extract province from quê quán (prioritized)
+        province_name = extract_province(place_of_origin)
+        disaster_info = None
+        
+        if province_name:
+            print(f"   🌍 Fetching disaster info for province: {province_name}")
+            try:
+                # Call DisasterLocation API
+                from sqlalchemy.orm import Session
+                from .database import SessionLocal
+                from .models import DisasterLocation
+                
+                db = SessionLocal()
+                try:
+                    # Search by province name
+                    disaster_location = db.query(DisasterLocation).filter(
+                        DisasterLocation.province == province_name
+                    ).first()
+                    
+                    if disaster_location:
+                        # Parse JSON fields
+                        import json
+                        recommended_packages_json = []
+                        if disaster_location.recommended_packages:
+                            try:
+                                if isinstance(disaster_location.recommended_packages, str):
+                                    recommended_packages_json = json.loads(disaster_location.recommended_packages)
+                                else:
+                                    recommended_packages_json = disaster_location.recommended_packages
+                            except:
+                                pass
+                        
+                        disaster_info = {
+                            "province": disaster_location.province,
+                            "region": disaster_location.region,
+                            "status": disaster_location.status,
+                            "severity": disaster_location.severity,
+                            "advice": disaster_location.advice,
+                            "detail": disaster_location.detail,
+                            "recommended_packages": recommended_packages_json,
+                            "last_updated": disaster_location.last_updated.isoformat() if disaster_location.last_updated else None
+                        }
+                        print(f"   ✅ Disaster info found: status={disaster_info['status']}, severity={disaster_info['severity']}")
+                finally:
+                    db.close()
+            except Exception as e:
+                print(f"   ⚠️  Error fetching disaster info: {e}")
+                disaster_info = None
+        
         # Recommendation logic
         recommended_packages = []
         final_region = "Unknown"
@@ -1408,7 +1524,9 @@ async def recommend_insurance_by_person_info(person_data: Dict[str, Any]) -> Dic
         # Priority 1: Quê quán Bắc/Trung → recommend
         if place_region in ["Bac", "Trung"]:
             final_region = place_region
-            recommended_packages = [
+            
+            # Base recommendations
+            base_packages = [
                 {
                     "name": "Bảo hiểm thiên tai ngập lụt",
                     "reason": f"Quê quán tại miền {place_region} thường xuyên chịu ảnh hưởng bởi bão và mưa lũ. Gói bảo hiểm này bảo vệ tài sản khỏi thiệt hại do ngập lụt, lũ quét.",
@@ -1425,6 +1543,72 @@ async def recommend_insurance_by_person_info(person_data: Dict[str, Any]) -> Dic
                     "priority": 0.85
                 }
             ]
+            
+            # 🔥 Merge with DisasterLocation recommendations if available
+            if disaster_info and disaster_info.get('recommended_packages'):
+                # Map package IDs to actual insurance packages in the system
+                package_mapping = {
+                    "bh_thien_tai_mien_bac": {
+                        "id": "flood-basic",
+                        "name": "Bảo Hiểm Thiệt Hại Do Ngập Lụt",
+                        "reason": "Bảo vệ tài sản nhà cửa, đồ đạc khỏi thiệt hại do ngập lụt, lũ quét tại các vùng có nguy cơ cao"
+                    },
+                    "bh_thien_tai_mien_trung": {
+                        "id": "storm-comprehensive",
+                        "name": "Bảo Hiểm Thiệt Hại Do Bão",
+                        "reason": "Bảo vệ toàn diện tài sản khỏi thiệt hại do bão, gió lốc, sét đánh tại khu vực ven biển và miền Trung"
+                    },
+                    "bh_xe_co_gioi": {
+                        "id": "disaster-vehicle",
+                        "name": "Bảo Hiểm Phương Tiện Thiên Tai",
+                        "reason": "Bảo vệ xe ô tô, xe máy khỏi thiệt hại do ngập nước, bão, lũ, cây đổ với quy trình bồi thường nhanh"
+                    },
+                    "bh_tai_san": {
+                        "id": "flood-basic",
+                        "name": "Bảo Hiểm Thiệt Hại Do Ngập Lụt",
+                        "reason": "Bảo vệ tài sản, đồ đạc trong nhà khỏi thiệt hại do thiên tai"
+                    }
+                }
+                
+                # Add disaster-specific packages with higher priority
+                for pkg_id in disaster_info['recommended_packages']:
+                    if isinstance(pkg_id, str):
+                        # Package ID is a string, map to actual package details
+                        pkg_details = package_mapping.get(pkg_id, {
+                            "id": pkg_id,
+                            "name": pkg_id.replace('_', ' ').title(),
+                            "reason": f"Gói bảo hiểm được đề xuất cho khu vực {disaster_info['province']}"
+                        })
+                        
+                        # Create disaster-specific recommendation
+                        disaster_pkg = {
+                            "package_id": pkg_details.get('id', pkg_id),
+                            "name": pkg_details['name'],
+                            "reason": f"⚠️ Cảnh báo {disaster_info['province']}: {disaster_info['status'].replace('_', ' ').title()} - {pkg_details['reason']}. Mức độ: {disaster_info.get('severity', 'Trung bình')}",
+                            "priority": 1.0,  # Highest priority for real-time disaster data
+                            "disaster_severity": disaster_info.get('severity', 'Trung bình'),
+                            "disaster_status": disaster_info['status'],
+                            "disaster_province": disaster_info['province']
+                        }
+                    else:
+                        # Package is already an object
+                        disaster_pkg = {
+                            "package_id": pkg_id.get('id', ''),
+                            "name": pkg_id.get('name', ''),
+                            "reason": f"⚠️ {disaster_info['province']} - {disaster_info['status']}: {pkg_id.get('reason', '')}",
+                            "priority": 1.0,
+                            "disaster_severity": disaster_info.get('severity', 'Trung bình'),
+                            "disaster_status": disaster_info['status'],
+                            "disaster_province": disaster_info['province']
+                        }
+                    recommended_packages.append(disaster_pkg)
+                
+                # Add base packages with lower priority
+                recommended_packages.extend(base_packages)
+            else:
+                # No disaster data, use base recommendations
+                recommended_packages = base_packages
+                
         # Priority 2: Quê quán Nam + Address Bắc/Trung → recommend
         elif place_region == "Nam" and addr_region in ["Bac", "Trung"]:
             final_region = addr_region
@@ -1445,13 +1629,107 @@ async def recommend_insurance_by_person_info(person_data: Dict[str, Any]) -> Dic
                     "priority": 0.85
                 }
             ]
+        
+        # Priority 3: Quê quán Nam (use DisasterLocation data if available)
+        elif place_region == "Nam":
+            final_region = "Nam"
+            
+            # 🔥 Check if we have disaster data for this Nam province
+            if disaster_info and disaster_info.get('recommended_packages'):
+                # Map package IDs to actual insurance packages
+                package_mapping = {
+                    "bh_thien_tai_mien_bac": {
+                        "id": "flood-basic",
+                        "name": "Bảo Hiểm Thiệt Hại Do Ngập Lụt",
+                        "reason": "Bảo vệ tài sản nhà cửa, đồ đạc khỏi thiệt hại do ngập lụt, lũ quét tại các vùng có nguy cơ cao"
+                    },
+                    "bh_thien_tai_mien_trung": {
+                        "id": "storm-comprehensive",
+                        "name": "Bảo Hiểm Thiệt Hại Do Bão",
+                        "reason": "Bảo vệ toàn diện tài sản khỏi thiệt hại do bão, gió lốc, sét đánh tại khu vực ven biển và miền Trung"
+                    },
+                    "bh_xe_co_gioi": {
+                        "id": "disaster-vehicle",
+                        "name": "Bảo Hiểm Phương Tiện Thiên Tai",
+                        "reason": "Bảo vệ xe ô tô, xe máy khỏi thiệt hại do ngập nước, bão, lũ, cây đổ với quy trình bồi thường nhanh"
+                    },
+                    "bh_tai_san": {
+                        "id": "flood-basic",
+                        "name": "Bảo Hiểm Thiệt Hại Do Ngập Lụt",
+                        "reason": "Bảo vệ tài sản, đồ đạc trong nhà khỏi thiệt hại do thiên tai"
+                    }
+                }
+                
+                # Add disaster-specific packages
+                for pkg_id in disaster_info['recommended_packages']:
+                    if isinstance(pkg_id, str):
+                        pkg_details = package_mapping.get(pkg_id, {
+                            "id": pkg_id,
+                            "name": pkg_id.replace('_', ' ').title(),
+                            "reason": f"Gói bảo hiểm được đề xuất cho khu vực {disaster_info['province']}"
+                        })
+                        
+                        disaster_pkg = {
+                            "package_id": pkg_details.get('id', pkg_id),
+                            "name": pkg_details['name'],
+                            "reason": f"⚠️ Cảnh báo {disaster_info['province']}: {disaster_info['status'].replace('_', ' ').title()} - {pkg_details['reason']}. Mức độ: {disaster_info.get('severity', 'Trung bình')}",
+                            "priority": 1.0,
+                            "disaster_severity": disaster_info.get('severity', 'Trung bình'),
+                            "disaster_status": disaster_info['status'],
+                            "disaster_province": disaster_info['province']
+                        }
+                    else:
+                        disaster_pkg = {
+                            "package_id": pkg_id.get('id', ''),
+                            "name": pkg_id.get('name', ''),
+                            "reason": f"⚠️ {disaster_info['province']} - {disaster_info['status']}: {pkg_id.get('reason', '')}",
+                            "priority": 1.0,
+                            "disaster_severity": disaster_info.get('severity', 'Trung bình'),
+                            "disaster_status": disaster_info['status'],
+                            "disaster_province": disaster_info['province']
+                        }
+                    recommended_packages.append(disaster_pkg)
+                
+                # Add generic Nam packages
+                recommended_packages.extend([
+                    {
+                        "name": "Bảo hiểm ngập úng đô thị",
+                        "reason": "Khu vực thành phố miền Nam thường xuyên bị ngập úng do mưa lớn và triều cường. Gói này bảo vệ tài sản nhà cửa, đồ đạc.",
+                        "priority": 0.85
+                    },
+                    {
+                        "name": "Bảo hiểm phương tiện ngập nước",
+                        "reason": "Xe máy, ô tô dễ bị ngập nước khi mưa lớn. Gói này giúp bồi thường chi phí sửa chữa động cơ, hệ thống điện.",
+                        "priority": 0.80
+                    }
+                ])
+            else:
+                # No disaster data, use generic Nam recommendations
+                recommended_packages = [
+                    {
+                        "name": "Bảo hiểm ngập úng đô thị",
+                        "reason": "Khu vực thành phố miền Nam thường xuyên bị ngập úng do mưa lớn và triều cường. Gói này bảo vệ tài sản nhà cửa, đồ đạc.",
+                        "priority": 0.90
+                    },
+                    {
+                        "name": "Bảo hiểm phương tiện ngập nước",
+                        "reason": "Xe máy, ô tô dễ bị ngập nước khi mưa lớn hoặc triều cường. Gói này giúp bồi thường chi phí sửa chữa động cơ, hệ thống điện bị hư hỏng do nước.",
+                        "priority": 0.85
+                    },
+                    {
+                        "name": "Bảo hiểm tài sản gia đình",
+                        "reason": "Bảo vệ tài sản trong nhà khỏi thiệt hại do mưa bão, ngập nước, hoặc các thiên tai khác.",
+                        "priority": 0.80
+                    }
+                ]
+        
         # Otherwise: No recommendation
         else:
             final_region = place_region if place_region != "Unknown" else addr_region
         
         print(f"   ✅ Final region: {final_region}, Packages: {len(recommended_packages)}")
         
-        return {
+        result = {
             "address": {
                 "text": address,
                 "type": "thuong_tru" if address else "unknown",
@@ -1463,6 +1741,12 @@ async def recommend_insurance_by_person_info(person_data: Dict[str, Any]) -> Dic
             },
             "recommended_packages": recommended_packages
         }
+        
+        # Add disaster info if available
+        if disaster_info:
+            result["disaster_info"] = disaster_info
+        
+        return result
         
     except Exception as e:
         print(f"❌ Error in recommend_insurance_by_person_info: {e}")

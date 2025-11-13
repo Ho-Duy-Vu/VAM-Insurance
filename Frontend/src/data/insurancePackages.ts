@@ -1,6 +1,6 @@
 /**
- * Mock Insurance Packages Data
- * Sample insurance packages for the application
+ * Mock Insurance Packages Data  
+ * Sample insurance packages for VAM Insurance
  */
 
 import type { InsurancePackage } from '../types/insurance'

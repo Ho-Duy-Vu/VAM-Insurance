@@ -35,7 +35,7 @@ async def init_db():
     Initialize database tables
     """
     # Import models to register them
-    from app.models import Document, Page, Job
+    from app.models import Document, Page, Job, User, InsurancePurchase, DisasterLocation
     
     # Create all tables
     Base.metadata.create_all(bind=engine)

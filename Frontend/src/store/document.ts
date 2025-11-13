@@ -17,6 +17,7 @@ interface DocumentState {
   currentPage: number
   currentTab: 'visual' | 'markdown' | 'json'
   theme: 'light' | 'dark'
+  selectedRegion: string | null
   
   // Actions
   setCurrentDocument: (doc: DocumentInfo) => void
@@ -27,6 +28,7 @@ interface DocumentState {
   setCurrentPage: (page: number) => void
   setCurrentTab: (tab: 'visual' | 'markdown' | 'json') => void
   toggleTheme: () => void
+  setSelectedRegion: (regionId: string | null) => void
   
   // Multiple documents actions
   setUploadedDocumentIds: (ids: string[]) => void
@@ -49,6 +51,7 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   currentPage: 0,
   currentTab: 'markdown',  // Default to markdown tab
   theme: 'light',
+  selectedRegion: null,
   
   // Actions
   setCurrentDocument: (doc) => set({ currentDocument: doc }),
@@ -62,6 +65,7 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   toggleTheme: () => set((state) => ({ 
     theme: state.theme === 'light' ? 'dark' : 'light' 
   })),
+  setSelectedRegion: (regionId) => set({ selectedRegion: regionId }),
   
   // Multiple documents actions
   setUploadedDocumentIds: (ids) => {
@@ -90,5 +94,6 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     processingProgress: 0,
     currentPage: 0,
     currentTab: 'json',
+    selectedRegion: null,
   }),
 }))

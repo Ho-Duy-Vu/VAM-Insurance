@@ -59,3 +59,62 @@ body {
   min-height: 100vh;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Leaflet Map Fixes - Prevent z-index issues */
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-tile-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-overlay-pane {
+  z-index: 2 !important;
+}
+
+.leaflet-shadow-pane {
+  z-index: 3 !important;
+}
+
+.leaflet-marker-pane {
+  z-index: 4 !important;
+}
+
+.leaflet-tooltip-pane {
+  z-index: 5 !important;
+}
+
+.leaflet-popup-pane {
+  z-index: 6 !important;
+}
+
+.leaflet-control {
+  z-index: 7 !important;
+}
+
+/* Ensure map container doesn't overflow */
+.leaflet-container {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Custom marker styling */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Prevent map from interfering with scroll */
+.leaflet-container {
+  touch-action: pan-x pan-y;
+}
+
+/* Fix for map on mobile zoom */
+@media (max-width: 768px) {
+  .leaflet-container {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+

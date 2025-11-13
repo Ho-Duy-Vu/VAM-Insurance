@@ -22,6 +22,7 @@ export default function Footer() {
     { name: 'Trung tâm hỗ trợ', href: '/support' },
     { name: 'Hướng dẫn sử dụng', href: '/guide' },
     { name: 'Câu hỏi thường gặp', href: '/faq' },
+    { name: 'Cài đặt', href: '/settings' },
     { name: 'Chính sách bảo mật', href: '/privacy' },
     { name: 'Điều khoản sử dụng', href: '/terms' },
   ]

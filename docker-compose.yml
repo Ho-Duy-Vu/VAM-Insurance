@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: vam-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Backend/data:/app/data
+      - ./Backend/vam_insurance.db:/app/vam_insurance.db
+    environment:
+      - DATABASE_URL=sqlite:///./vam_insurance.db
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ALLOWED_ORIGINS=http://localhost,http://localhost:80
+    restart: unless-stopped
+    networks:
+      - vam-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: vam-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - vam-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  vam-network:
+    driver: bridge
+
+volumes:
+  backend-data:
+    driver: local

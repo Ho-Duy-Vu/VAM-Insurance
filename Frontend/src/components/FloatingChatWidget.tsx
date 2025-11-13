@@ -34,10 +34,42 @@ export default function FloatingChatWidget() {
   ])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [zoomLevel, setZoomLevel] = useState(100)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const chatWindowRef = useRef<HTMLDivElement>(null)
+  
+  // Calculate dynamic border radius based on zoom
+  const getBorderRadius = () => {
+    if (zoomLevel <= 67) return '1rem' // 16px at 67% zoom
+    if (zoomLevel <= 80) return '1.25rem' // 20px at 80% zoom
+    if (zoomLevel <= 90) return '1.5rem' // 24px at 90% zoom
+    return '1.75rem' // 28px at 100%+ zoom (default: rounded-3xl = 1.5rem)
+  }
+  
+  // Detect browser zoom level
+  useEffect(() => {
+    const detectZoom = () => {
+      const zoom = Math.round(window.devicePixelRatio * 100)
+      setZoomLevel(zoom)
+      
+      // Calculate border radius for logging
+      let radius = '1.75rem'
+      if (zoom <= 67) radius = '1rem'
+      else if (zoom <= 80) radius = '1.25rem'
+      else if (zoom <= 90) radius = '1.5rem'
+      
+      console.log(`🔍 Browser zoom detected: ${zoom}% | Border radius: ${radius}`)
+    }
+    
+    detectZoom()
+    window.addEventListener('resize', detectZoom)
+    
+    return () => {
+      window.removeEventListener('resize', detectZoom)
+    }
+  }, [])
   
   // Auto-scroll to bottom when new message
   useEffect(() => {
@@ -182,12 +214,12 @@ export default function FloatingChatWidget() {
   
   return (
     <>
-      {/* Floating Chat Button - Bottom Right */}
+      {/* Floating Chat Button - Bottom Right (adjusted for zoom) */}
       {!isOpen && (
         <button
           data-chat-button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 group"
+          className="fixed bottom-8 right-8 z-[100] bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 group"
           aria-label="Mở chat tư vấn bảo hiểm"
         >
           <MessageCircle className="w-7 h-7" />
@@ -201,14 +233,18 @@ export default function FloatingChatWidget() {
         </button>
       )}
       
-      {/* Chat Window - iMessage Style */}
+      {/* Chat Window - iMessage Style (adjusted position) */}
       {isOpen && (
         <div
           ref={chatWindowRef}
-          className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl flex flex-col border border-gray-200 dark:border-gray-700 animate-slide-up"
+          className="fixed bottom-8 right-8 z-[100] w-96 max-w-[calc(100vw-4rem)] h-[600px] max-h-[calc(100vh-4rem)] bg-white dark:bg-gray-800 shadow-2xl flex flex-col border border-gray-200 dark:border-gray-700 animate-slide-up"
+          style={{ borderRadius: getBorderRadius() }}
         >
           {/* Header - Gradient */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-t-3xl shadow-lg">
+          <div 
+            className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-lg"
+            style={{ borderTopLeftRadius: getBorderRadius(), borderTopRightRadius: getBorderRadius() }}
+          >
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-inner">
@@ -291,7 +327,11 @@ export default function FloatingChatWidget() {
           )}
           
           {/* Input - Modern Design */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-3xl">
+          <form 
+            onSubmit={handleSubmit} 
+            className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+            style={{ borderBottomLeftRadius: getBorderRadius(), borderBottomRightRadius: getBorderRadius() }}
+          >
             <div className="flex gap-2">
               <input
                 ref={inputRef}
@@ -340,14 +380,33 @@ export default function FloatingChatWidget() {
           animation: slide-up 0.3s ease-out;
         }
         
+        /* Adjust for different zoom levels */
+        @media (min-width: 1024px) {
+          [data-chat-button],
+          .fixed.bottom-8.right-8.w-96 {
+            bottom: 2rem !important;
+            right: 2rem !important;
+          }
+        }
+        
+        /* Large screens - more spacing */
+        @media (min-width: 1440px) {
+          [data-chat-button],
+          .fixed.bottom-8.right-8.w-96 {
+            bottom: 2.5rem !important;
+            right: 2.5rem !important;
+          }
+        }
+        
+        /* Mobile responsive */
         @media (max-width: 640px) {
           [data-chat-button] {
-            bottom: 1rem;
-            right: 1rem;
+            bottom: 1rem !important;
+            right: 1rem !important;
           }
           
           ${isOpen ? `
-          .fixed.bottom-6.right-6.w-96 {
+          .fixed.bottom-8.right-8.w-96 {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -361,11 +420,8 @@ export default function FloatingChatWidget() {
             margin: 0 !important;
           }
           
-          .fixed.bottom-6.right-6.w-96 > div:first-child {
-            border-radius: 0 !important;
-          }
-          
-          .fixed.bottom-6.right-6.w-96 > form:last-child {
+          .fixed.bottom-8.right-8.w-96 > div:first-child,
+          .fixed.bottom-8.right-8.w-96 > form:last-child {
             border-radius: 0 !important;
           }
           ` : ''}

@@ -9,7 +9,7 @@ interface OverlayCanvasProps {
   page?: number
   onRegionClick?: (region: DocumentRegion) => void
 }
-
+  
 const regionColors = {
   text: '#3B82F6', // Blue
   table: '#10B981', // Green  

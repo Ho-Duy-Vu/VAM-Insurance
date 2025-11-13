@@ -47,7 +47,7 @@ except ImportError:
     print("Warning: pdf2image not installed. Alternative PDF processing will be used.")
 
 from app.database import init_db, get_db
-from app.models import Document, Job, Page, User
+from app.models import Document, Job, Page, User, DisasterLocation
 from app.schemas import (
     DocumentResponse,
     JobResponse,
@@ -57,18 +57,27 @@ from app.schemas import (
     UserRegister,
     UserLogin,
     UserResponse,
-    TokenResponse
+    UserUpdate,
+    ChangePasswordRequest,
+    TokenResponse,
+    DisasterLocationResponse,
+    DisasterLocationCreate,
+    DisasterLocationUpdate
 )
+from app.weather_service import WeatherService
 from app.ai_service import analyze_auto_document, extract_markdown_content, get_image_path_from_url
+from app.geo_analyst import GeoAnalyst, generate_gemini_prompt
 
 # JWT Configuration
 from datetime import timedelta
 import jwt
 from typing import Optional
+from decouple import config
 
-SECRET_KEY = "your-secret-key-change-this-in-production"  # Change this!
+# Load from environment variables
+SECRET_KEY = config('SECRET_KEY', default='your-secret-key-change-this-in-production')
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+ACCESS_TOKEN_EXPIRE_MINUTES = config('ACCESS_TOKEN_EXPIRE_MINUTES', default=10080, cast=int)  # 7 days
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token"""
@@ -422,9 +431,12 @@ app = FastAPI(
 )
 
 # Configure CORS for Frontend
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+allowed_origins = [FRONTEND_URL, "http://localhost:5174", "http://localhost:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -471,7 +483,14 @@ async def register_user(user_data: UserRegister):
             email=user_data.email,
             full_name=user_data.full_name,
             phone=user_data.phone,
-            hashed_password=hashed_password
+            hashed_password=hashed_password,
+            # Extended profile fields
+            address=user_data.address,
+            date_of_birth=user_data.date_of_birth,
+            gender=user_data.gender,
+            id_number=user_data.id_number,
+            place_of_origin=user_data.place_of_origin,
+            occupation=user_data.occupation
         )
         
         db.add(new_user)
@@ -522,6 +541,10 @@ async def login_user(credentials: UserLogin):
                 status_code=403,
                 detail="Account is inactive"
             )
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        db.commit()
         
         # Create access token
         access_token = create_access_token(
@@ -578,7 +601,272 @@ async def get_current_user(token: str):
     finally:
         db.close()
 
+# ==================== User Profile Management Endpoints ====================
+
+def get_user_from_token(token: str) -> User:
+    """Helper function to get user from JWT token"""
+    db = get_db()
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(payload.get("sub"))
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    finally:
+        db.close()
+
+@app.put("/users/profile", response_model=UserResponse)
+async def update_user_profile(profile_data: UserUpdate, token: str):
+    """
+    Update user profile information
+    """
+    db = get_db()
+    try:
+        # Get current user
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(payload.get("sub"))
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Update fields if provided
+        update_data = profile_data.model_dump(exclude_unset=True)
+        
+        for field, value in update_data.items():
+            if hasattr(user, field):
+                setattr(user, field, value)
+        
+        # Update timestamp
+        user.updated_at = datetime.utcnow()
+        
+        # Check if profile is now complete
+        required_fields = ['full_name', 'phone', 'address', 'date_of_birth']
+        profile_complete = all(getattr(user, field) for field in required_fields)
+        user.profile_completed = profile_complete
+        
+        db.commit()
+        db.refresh(user)
+        
+        print(f"✅ Updated profile for user {user.email}")
+        
+        return UserResponse.model_validate(user)
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Profile update failed: {str(e)}")
+    finally:
+        db.close()
+
+@app.post("/users/change-password")
+async def change_password(password_data: ChangePasswordRequest, token: str):
+    """
+    Change user password
+    """
+    db = get_db()
+    try:
+        # Get current user
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(payload.get("sub"))
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Verify current password
+        if not user.verify_password(password_data.current_password):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        
+        # Update password
+        user.hashed_password = User.hash_password(password_data.new_password)
+        user.updated_at = datetime.utcnow()
+        
+        db.commit()
+        
+        print(f"✅ Password changed for user {user.email}")
+        
+        return {"message": "Password changed successfully"}
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Password change failed: {str(e)}")
+    finally:
+        db.close()
+
+@app.get("/users/{user_id}", response_model=UserResponse)
+async def get_user_by_id(user_id: int, token: str):
+    """
+    Get user by ID (admin or self only)
+    """
+    db = get_db()
+    try:
+        # Get current user
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        current_user_id = int(payload.get("sub"))
+        
+        # Only allow viewing own profile for now (can be extended for admin)
+        if current_user_id != user_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return UserResponse.model_validate(user)
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+@app.get("/users/profile/completion")
+async def get_profile_completion(token: str):
+    """
+    Get profile completion status and missing fields
+    """
+    db = get_db()
+    try:
+        # Get current user
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(payload.get("sub"))
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Required fields for complete profile
+        required_fields = {
+            'full_name': 'Họ và tên',
+            'phone': 'Số điện thoại',
+            'address': 'Địa chỉ',
+            'date_of_birth': 'Ngày sinh',
+            'gender': 'Giới tính',
+            'id_number': 'Số CCCD/CMND'
+        }
+        
+        # Optional but recommended fields
+        recommended_fields = {
+            'place_of_origin': 'Quê quán',
+            'occupation': 'Nghề nghiệp',
+            'emergency_contact_name': 'Người liên hệ khẩn cấp',
+            'emergency_contact_phone': 'SĐT người liên hệ khẩn cấp'
+        }
+        
+        missing_required = []
+        missing_recommended = []
+        
+        # Check required fields
+        for field, label in required_fields.items():
+            if not getattr(user, field):
+                missing_required.append({'field': field, 'label': label})
+        
+        # Check recommended fields
+        for field, label in recommended_fields.items():
+            if not getattr(user, field):
+                missing_recommended.append({'field': field, 'label': label})
+        
+        total_fields = len(required_fields) + len(recommended_fields)
+        completed_fields = total_fields - len(missing_required) - len(missing_recommended)
+        completion_percentage = int((completed_fields / total_fields) * 100)
+        
+        return {
+            "completion_percentage": completion_percentage,
+            "profile_completed": len(missing_required) == 0,
+            "missing_required_fields": missing_required,
+            "missing_recommended_fields": missing_recommended,
+            "total_fields": total_fields,
+            "completed_fields": completed_fields
+        }
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
 # ==================== Document Endpoints ====================
+
+def cleanup_old_images(max_images: int = 30):
+    """
+    Cleanup old images when exceeding max_images limit
+    Deletes oldest images first to keep storage under control
+    """
+    try:
+        image_dir = "data/images"
+        
+        # Get all image files with their modification time
+        image_files = []
+        for filename in os.listdir(image_dir):
+            file_path = os.path.join(image_dir, filename)
+            if os.path.isfile(file_path) and filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+                mod_time = os.path.getmtime(file_path)
+                image_files.append((file_path, mod_time, filename))
+        
+        # Check if cleanup is needed
+        total_images = len(image_files)
+        if total_images <= max_images:
+            print(f"📊 Image count: {total_images}/{max_images} - No cleanup needed")
+            return
+        
+        # Sort by modification time (oldest first)
+        image_files.sort(key=lambda x: x[1])
+        
+        # Calculate how many to delete
+        images_to_delete = total_images - max_images
+        
+        print(f"🧹 Starting cleanup: {total_images} images found, deleting {images_to_delete} oldest images...")
+        
+        # Delete oldest images
+        deleted_count = 0
+        for file_path, mod_time, filename in image_files[:images_to_delete]:
+            try:
+                os.remove(file_path)
+                deleted_count += 1
+                print(f"  🗑️  Deleted: {filename}")
+            except Exception as e:
+                print(f"  ⚠️  Failed to delete {filename}: {e}")
+        
+        remaining = total_images - deleted_count
+        print(f"✅ Cleanup complete: Deleted {deleted_count} images, {remaining} remaining")
+        
+    except Exception as e:
+        print(f"❌ Cleanup error: {e}")
+        import traceback
+        traceback.print_exc()
 
 @app.post("/documents/upload", response_model=UploadResponse)
 async def upload_document(file: UploadFile = File(...)):
@@ -587,6 +875,11 @@ async def upload_document(file: UploadFile = File(...)):
     """
     db = get_db()
     try:
+        # 🧹 Cleanup old images if exceeding limit (only for image uploads)
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext in ['.png', '.jpg', '.jpeg']:
+            cleanup_old_images(max_images=30)
+        
         # Generate unique document ID
         document_id = str(uuid.uuid4())
         
@@ -698,6 +991,66 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
     finally:
         db.close()
+
+@app.get("/documents/images/stats")
+async def get_image_stats():
+    """
+    Get statistics about stored images
+    """
+    try:
+        image_dir = "data/images"
+        
+        # Get all image files
+        image_files = []
+        total_size = 0
+        
+        for filename in os.listdir(image_dir):
+            file_path = os.path.join(image_dir, filename)
+            if os.path.isfile(file_path) and filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+                size = os.path.getsize(file_path)
+                mod_time = os.path.getmtime(file_path)
+                image_files.append({
+                    "filename": filename,
+                    "size_mb": round(size / (1024 * 1024), 2),
+                    "modified": datetime.fromtimestamp(mod_time).isoformat()
+                })
+                total_size += size
+        
+        # Sort by modification time (newest first)
+        image_files.sort(key=lambda x: x['modified'], reverse=True)
+        
+        return {
+            "total_images": len(image_files),
+            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "limit": 30,
+            "cleanup_needed": len(image_files) > 30,
+            "images_to_delete": max(0, len(image_files) - 30),
+            "recent_images": image_files[:10]  # Show 10 most recent
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+
+@app.post("/documents/images/cleanup")
+async def trigger_cleanup():
+    """
+    Manually trigger image cleanup
+    """
+    try:
+        cleanup_old_images(max_images=30)
+        
+        # Get updated stats
+        image_dir = "data/images"
+        remaining = len([f for f in os.listdir(image_dir) 
+                        if os.path.isfile(os.path.join(image_dir, f)) 
+                        and f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+        
+        return {
+            "status": "success",
+            "remaining_images": remaining,
+            "limit": 30
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")
 
 @app.post("/documents/{document_id}/process")
 async def process_document(document_id: str):
@@ -1300,7 +1653,7 @@ async def create_insurance_purchase(request: dict):
             user_id=request['user_id'],
             package_name=request['package_name'],
             package_type=request['package_type'],
-            insurance_company=request.get('insurance_company'),
+            insurance_company=request.get('insurance_company', 'VAM Insurance'),
             customer_name=request['customer_name'],
             customer_phone=request['customer_phone'],
             customer_email=request.get('customer_email'),
@@ -1308,7 +1661,7 @@ async def create_insurance_purchase(request: dict):
             customer_id_number=request.get('customer_id_number'),
             coverage_amount=request.get('coverage_amount'),
             premium_amount=request['premium_amount'],
-            payment_frequency=request.get('payment_frequency'),
+            payment_frequency=request.get('payment_frequency', 'Năm'),
             start_date=request.get('start_date'),
             end_date=request.get('end_date'),
             beneficiary_name=request.get('beneficiary_name'),
@@ -1510,6 +1863,953 @@ async def update_insurance_purchase(purchase_id: int, request: dict):
         db.rollback()
         print(f"❌ Failed to update purchase: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update purchase: {str(e)}")
+    finally:
+        db.close()
+
+
+def format_currency_for_pdf(amount_str):
+    """
+    Format currency string for PDF display
+    Handles both plain numbers and formatted strings like "500.000.000 VNĐ"
+    """
+    if not amount_str:
+        return 'N/A'
+    
+    try:
+        # If it's already a formatted string with VNĐ, return as is
+        if isinstance(amount_str, str) and ('VNĐ' in amount_str.upper() or 'VND' in amount_str.upper()):
+            return amount_str
+        
+        # Try to convert to int and format
+        # Remove any existing formatting first
+        clean_str = str(amount_str).replace('.', '').replace(',', '').replace('VNĐ', '').replace('VND', '').replace('đ', '').strip()
+        amount = int(clean_str)
+        
+        # Format with Vietnamese style (dots as thousand separators)
+        formatted = f"{amount:,}".replace(',', '.')
+        return f"{formatted} VNĐ"
+    except (ValueError, AttributeError):
+        # If conversion fails, return the original string
+        return str(amount_str)
+
+
+def format_date_vietnamese(date_str):
+    """
+    Format date to Vietnamese format DD/MM/YYYY
+    """
+    if not date_str:
+        return 'Chưa xác định'
+    
+    try:
+        # If already in DD/MM/YYYY format
+        if '/' in date_str and len(date_str.split('/')) == 3:
+            return date_str
+        
+        # If in YYYY-MM-DD format
+        if '-' in date_str and len(date_str.split('-')) == 3:
+            parts = date_str.split('-')
+            return f"{parts[2]}/{parts[1]}/{parts[0]}"
+        
+        return date_str
+    except:
+        return date_str
+
+
+def format_currency_for_pdf(amount):
+    """
+    Format currency for PDF display
+    """
+    if not amount:
+        return 'Chưa xác định'
+    
+    try:
+        # If it's already a formatted string with currency, return as-is
+        if isinstance(amount, str):
+            if 'VNĐ' in amount or 'VND' in amount:
+                return amount
+            
+            # Try to extract number from string
+            import re
+            numbers = re.findall(r'\d+\.?\d*', amount.replace('.', '').replace(',', ''))
+            if numbers:
+                amount = float(numbers[0])
+            else:
+                return amount  # Return original if can't parse
+        
+        # Format with Vietnamese locale (dot as thousand separator)
+        formatted = "{:,.0f}".format(float(amount)).replace(',', '.')
+        return f"{formatted} VNĐ"
+    except:
+        return str(amount)
+
+
+@app.get("/insurance-purchases/{purchase_id}/download-contract")
+async def download_insurance_contract(purchase_id: int):
+    """
+    Download insurance contract as PDF
+    Generates a professional PDF contract document with Vietnamese support
+    """
+    from app.models import InsurancePurchase
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch, cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    from io import BytesIO
+    import os
+    
+    db = get_db()
+    
+    try:
+        purchase = db.query(InsurancePurchase)\
+            .filter(InsurancePurchase.id == purchase_id)\
+            .first()
+        
+        if not purchase:
+            raise HTTPException(status_code=404, detail="Purchase not found")
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4,
+            rightMargin=2*cm,
+            leftMargin=2*cm,
+            topMargin=2*cm,
+            bottomMargin=2*cm
+        )
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Try to register Vietnamese font (fallback to default if not available)
+        try:
+            # Register a Vietnamese-compatible font if available
+            font_path = "C:/Windows/Fonts/times.ttf"  # Times New Roman supports Vietnamese
+            if os.path.exists(font_path):
+                pdfmetrics.registerFont(TTFont('TimesVN', font_path))
+                default_font = 'TimesVN'
+            else:
+                default_font = 'Helvetica'
+        except:
+            default_font = 'Helvetica'
+        
+        # Create professional custom styles
+        header_style = ParagraphStyle(
+            'Header',
+            parent=styles['Normal'],
+            fontName=default_font,
+            fontSize=26,
+            textColor=colors.HexColor('#1E40AF'),
+            spaceAfter=10,
+            alignment=TA_CENTER,
+            leading=32
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontName=default_font,
+            fontSize=16,
+            textColor=colors.HexColor('#DC2626'),
+            spaceAfter=20,
+            alignment=TA_CENTER,
+            leading=20
+        )
+        
+        company_style = ParagraphStyle(
+            'Company',
+            parent=styles['Normal'],
+            fontName=default_font,
+            fontSize=18,
+            textColor=colors.HexColor('#059669'),
+            spaceAfter=8,
+            alignment=TA_CENTER,
+            leading=22
+        )
+        
+        section_heading_style = ParagraphStyle(
+            'SectionHeading',
+            parent=styles['Normal'],
+            fontName=default_font,
+            fontSize=14,
+            textColor=colors.HexColor('#1F2937'),
+            spaceAfter=15,
+            spaceBefore=25,
+            alignment=TA_LEFT,
+            backColor=colors.HexColor('#F3F4F6'),
+            leading=18,
+            borderPadding=8
+        )
+        
+        body_style = ParagraphStyle(
+            'Body',
+            parent=styles['Normal'],
+            fontName=default_font,
+            fontSize=11,
+            textColor=colors.black,
+            spaceAfter=6,
+            alignment=TA_LEFT,
+            leading=14
+        )
+        
+        # === HEADER SECTION ===
+        story.append(Paragraph("HỢP ĐỒNG BẢO HIỂM", header_style))
+        story.append(Paragraph(f"Số hợp đồng: BH{purchase.policy_number or str(purchase.id).zfill(8)}", subtitle_style))
+        
+        # Company header with border
+        story.append(Spacer(1, 0.3*inch))
+        story.append(Paragraph("CÔNG TY BẢO HIỂM VAM", company_style))
+        
+        # Company details
+        company_info = [
+            f"<b>Công ty:</b> {purchase.insurance_company or 'VAM Insurance'}",
+            "<b>Địa chỉ:</b> TP. Hồ Chí Minh, Việt Nam",
+            "<b>Hotline:</b> 1900 xxxx",
+            f"<b>Ngày tạo hợp đồng:</b> {datetime.now().strftime('%d/%m/%Y')}"
+        ]
+        
+        for info in company_info:
+            story.append(Paragraph(info, body_style))
+        
+        story.append(Spacer(1, 0.4*inch))
+        
+        # === PACKAGE INFORMATION SECTION ===
+        story.append(Paragraph("I. THÔNG TIN GÓI BẢO HIỂM", section_heading_style))
+        
+        # Create separate styles for different types of information
+        label_style = ParagraphStyle(
+            'Label',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=11,
+            textColor=colors.black,
+            leftIndent=10
+        )
+        
+        value_style = ParagraphStyle(
+            'Value',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=11,
+            textColor=colors.black,
+            leftIndent=10
+        )
+        
+        coverage_style = ParagraphStyle(
+            'Coverage',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=11,
+            textColor=colors.HexColor('#059669'),
+            leftIndent=10
+        )
+        
+        premium_style = ParagraphStyle(
+            'Premium',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=11,
+            textColor=colors.HexColor('#DC2626'),
+            leftIndent=10
+        )
+        
+        # Format coverage amount properly
+        coverage_display = purchase.coverage_amount or '300.000.000 VNĐ/người/năm'
+        if not any(x in coverage_display for x in ['/', 'người', 'năm']):
+            coverage_display += '/người/năm'
+            
+        # Format premium amount
+        premium_display = format_currency_for_pdf(purchase.premium_amount)
+        
+        package_data = [
+            [Paragraph('<b>Tên gói bảo hiểm</b>', label_style), Paragraph(purchase.package_name or 'N/A', value_style)],
+            [Paragraph('<b>Loại bảo hiểm</b>', label_style), Paragraph(purchase.package_type or 'N/A', value_style)],
+            [Paragraph('<b>Số tiền bảo hiểm<br/>(Mức bảo hiểm tối đa)</b>', label_style), Paragraph(f'<b>{coverage_display}</b>', coverage_style)],
+            [Paragraph('<b>Phí bảo hiểm<br/>(Số tiền phải trả)</b>', label_style), Paragraph(f'<b>{premium_display}</b>', premium_style)],
+            [Paragraph('<b>Tần suất thanh toán</b>', label_style), Paragraph(purchase.payment_frequency or 'Hàng năm', value_style)],
+            [Paragraph('<b>Ngày bắt đầu</b>', label_style), Paragraph(format_date_vietnamese(purchase.start_date), value_style)],
+            [Paragraph('<b>Ngày kết thúc</b>', label_style), Paragraph(format_date_vietnamese(purchase.end_date), value_style)],
+        ]
+        
+        package_table = Table(package_data, colWidths=[5*cm, 10*cm])
+        package_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#EBF8FF')),
+            ('BACKGROUND', (1, 0), (1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), default_font),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#F8FAFC'), colors.white]),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        story.append(package_table)
+        story.append(Spacer(1, 0.3*inch))
+        
+        # === CUSTOMER INFORMATION SECTION ===
+        story.append(Paragraph("II. THÔNG TIN KHÁCH HÀNG", section_heading_style))
+        
+        customer_data = [
+            [Paragraph('<b>Họ và tên</b>', label_style), Paragraph(purchase.customer_name or 'N/A', value_style)],
+            [Paragraph('<b>Số điện thoại</b>', label_style), Paragraph(purchase.customer_phone or 'N/A', value_style)],
+            [Paragraph('<b>Email</b>', label_style), Paragraph(purchase.customer_email or 'Chưa cung cấp', value_style)],
+            [Paragraph('<b>Địa chỉ</b>', label_style), Paragraph(getattr(purchase, 'customer_address', None) or 'Chưa cung cấp', value_style)],
+            [Paragraph('<b>Số CMND/CCCD</b>', label_style), Paragraph(getattr(purchase, 'customer_id_number', None) or 'Chưa cung cấp', value_style)],
+        ]
+        
+        # Add beneficiary info if available
+        beneficiary_name = getattr(purchase, 'beneficiary_name', None)
+        if beneficiary_name:
+            customer_data.extend([
+                [Paragraph('<b>Người thụ hưởng</b>', label_style), Paragraph(beneficiary_name, value_style)],
+                [Paragraph('<b>Mối quan hệ</b>', label_style), Paragraph(getattr(purchase, 'beneficiary_relationship', None) or 'N/A', value_style)],
+            ])
+        
+        customer_table = Table(customer_data, colWidths=[5*cm, 10*cm])
+        customer_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#FEF3F2')),
+            ('BACKGROUND', (1, 0), (1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), default_font),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#FFFBFB'), colors.white]),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        story.append(customer_table)
+        story.append(Spacer(1, 0.3*inch))
+        
+        # === VEHICLE INFORMATION (if applicable) ===
+        if purchase.vehicle_type:
+            story.append(Paragraph("III. THÔNG TIN PHƯƠNG TIỆN", section_heading_style))
+            
+            vehicle_data = [
+                [Paragraph('<b>Loại phương tiện</b>', label_style), Paragraph(purchase.vehicle_type or 'N/A', value_style)],
+                [Paragraph('<b>Biển số đăng ký</b>', label_style), Paragraph(purchase.license_plate or 'Chưa cung cấp', value_style)],
+            ]
+            
+            vehicle_table = Table(vehicle_data, colWidths=[5*cm, 10*cm])
+            vehicle_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F0F9FF')),
+                ('BACKGROUND', (1, 0), (1, -1), colors.white),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, -1), default_font),
+                ('FONTSIZE', (0, 0), (-1, -1), 11),
+                ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#F8FBFF'), colors.white]),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ]))
+            story.append(vehicle_table)
+            story.append(Spacer(1, 0.3*inch))
+        
+        # === PAYMENT INFORMATION SECTION ===
+        next_section = "IV." if purchase.vehicle_type else "III."
+        story.append(Paragraph(f"{next_section} THÔNG TIN THANH TOÁN", section_heading_style))
+        
+        payment_status_color = colors.HexColor("#059669") if purchase.payment_status == "PAID" else colors.HexColor("#DC2626") if purchase.payment_status == "FAILED" else colors.HexColor("#D97706")
+        
+        payment_status_style = ParagraphStyle(
+            'PaymentStatus',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=11,
+            textColor=payment_status_color,
+            leftIndent=10
+        )
+        
+        payment_data = [
+            [Paragraph('<b>Phương thức thanh toán</b>', label_style), Paragraph(purchase.payment_method or 'Chưa xác định', value_style)],
+            [Paragraph('<b>Trạng thái thanh toán</b>', label_style), Paragraph(f'<b>{purchase.payment_status or "PENDING"}</b>', payment_status_style)],
+            [Paragraph('<b>Mã giao dịch</b>', label_style), Paragraph(getattr(purchase, 'transaction_id', None) or f'TX{purchase.id}{datetime.now().strftime("%Y%m%d")}', value_style)],
+        ]
+        
+        payment_table = Table(payment_data, colWidths=[5*cm, 10*cm])
+        payment_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F0FDF4')),
+            ('BACKGROUND', (1, 0), (1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), default_font),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#F7FEF7'), colors.white]),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        story.append(payment_table)
+        story.append(Spacer(1, 0.5*inch))
+        
+        # === TERMS AND CONDITIONS ===
+        terms_section = "V." if purchase.vehicle_type else "IV."
+        story.append(Paragraph(f"{terms_section} ĐIỀU KHOẢN VÀ ĐIỀU KIỆN", section_heading_style))
+        
+        terms_text = f"""
+        <b>GIẢI THÍCH CÁC KHOẢN TIỀN:</b><br/>
+        • <b>Số tiền bảo hiểm ({coverage_display}):</b> Đây là số tiền tối đa mà Công ty bảo hiểm sẽ chi trả khi xảy ra rủi ro được bảo hiểm.<br/>
+        • <b>Phí bảo hiểm ({premium_display}):</b> Đây là số tiền Bên mua bảo hiểm phải thanh toán để duy trì hợp đồng bảo hiểm.<br/><br/>
+        
+        <b>ĐIỀU KHOẢN VÀ ĐIỀU KIỆN:</b><br/>
+        1. Hợp đồng này có hiệu lực kể từ ngày ký và thanh toán đầy đủ phí bảo hiểm.<br/>
+        2. Bên mua bảo hiểm có trách nhiệm cung cấp thông tin chính xác và đầy đủ.<br/>
+        3. Công ty bảo hiểm cam kết bồi thường theo đúng điều khoản đã thỏa thuận.<br/>
+        4. Mọi tranh chấp sẽ được giải quyết theo quy định của pháp luật Việt Nam.<br/>
+        5. Hợp đồng này được lập thành 02 bản có giá trị pháp lý như nhau.
+        """
+        
+        story.append(Paragraph(terms_text, body_style))
+        story.append(Spacer(1, 0.5*inch))
+        
+        # === SIGNATURE SECTION ===
+        story.append(Spacer(1, 0.3*inch))
+        
+        signature_header = Paragraph(
+            f"<b>Ngày ký: {datetime.now().strftime('%d tháng %m năm %Y')}</b>",
+            ParagraphStyle('SignatureHeader', parent=body_style, alignment=TA_CENTER, fontSize=12)
+        )
+        story.append(signature_header)
+        story.append(Spacer(1, 0.2*inch))
+        
+        signature_style = ParagraphStyle(
+            'Signature',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=11,
+            alignment=TA_CENTER
+        )
+        
+        signature_small_style = ParagraphStyle(
+            'SignatureSmall',
+            parent=body_style,
+            fontName=default_font,
+            fontSize=9,
+            alignment=TA_CENTER,
+            textColor=colors.HexColor('#6B7280')
+        )
+        
+        signature_data = [
+            [Paragraph('<b>BÊN MUA BẢO HIỂM</b>', signature_style), Paragraph('<b>ĐẠI DIỆN CÔNG TY</b>', signature_style)],
+            [Paragraph('', signature_style), Paragraph('', signature_style)],
+            [Paragraph('', signature_style), Paragraph('', signature_style)],
+            [Paragraph('', signature_style), Paragraph('', signature_style)],
+            [Paragraph(f'<b>{purchase.customer_name}</b>', signature_style), Paragraph('<b>Giám đốc</b>', signature_style)],
+            [Paragraph('<i>(Ký và ghi rõ họ tên)</i>', signature_small_style), Paragraph('<i>(Ký tên và đóng dấu)</i>', signature_small_style)],
+        ]
+        
+        signature_table = Table(signature_data, colWidths=[7.5*cm, 7.5*cm])
+        signature_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), default_font),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('FONTSIZE', (0, 5), (-1, 5), 9),
+            ('BOTTOMPADDING', (0, 1), (-1, 3), 15),
+            ('TOPPADDING', (0, 4), (-1, 4), 10),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        story.append(signature_table)
+        
+        # === FOOTER ===
+        story.append(Spacer(1, 0.5*inch))
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=body_style,
+            fontSize=10,
+            textColor=colors.HexColor('#6B7280'),
+            alignment=TA_CENTER,
+            leading=12
+        )
+        
+        footer_text = f"""
+        <b>HỢP ĐỒNG BẢO HIỂM - SỐ: BH{purchase.policy_number or str(purchase.id).zfill(8)}</b><br/>
+        Được tạo tự động bởi hệ thống VAM Insurance vào ngày {datetime.now().strftime('%d/%m/%Y lúc %H:%M')}<br/>
+        Để biết thêm thông tin, vui lòng liên hệ hotline: 1900 xxxx - website: www.vaminsurance.vn
+        """
+        
+        story.append(Paragraph(footer_text, footer_style))
+        
+        # Build PDF
+        doc.build(story)
+        
+        # Get PDF data
+        buffer.seek(0)
+        pdf_data = buffer.getvalue()
+        buffer.close()
+        
+        # Return as file response
+        from fastapi.responses import Response
+        
+        # Clean filename
+        clean_customer_name = ''.join(c for c in purchase.customer_name if c.isalnum() or c in (' ', '_')).replace(' ', '_')
+        filename = f"HopDong_BH{purchase.policy_number or str(purchase.id).zfill(8)}_{clean_customer_name}.pdf"
+        
+        print(f"✅ Generated PDF contract: {filename}")
+        
+        return Response(
+            content=pdf_data,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Failed to generate PDF contract: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to generate contract: {str(e)}")
+    finally:
+        db.close()
+
+
+# ===================== AI INSURANCE GEO-ANALYST ENDPOINTS =====================
+
+
+# ===================== AI INSURANCE GEO-ANALYST ENDPOINTS =====================
+
+@app.post("/analyze-weather-insurance")
+async def analyze_weather_insurance(request: dict):
+    """
+    AI Insurance Geo-Analyst - Phân tích địa chỉ, thời tiết và đề xuất bảo hiểm
+    
+    Input JSON:
+    {
+        "user_profile": {
+            "full_name": "Nguyễn Văn A",
+            "dob": "1996-10-12",
+            "address": "Thạch Hà, Hà Tĩnh",
+            "document_type": "CCCD"
+        },
+        "weather_data": {
+            "source": "OpenWeather",
+            "temperature": "28°C",
+            "condition": "mưa lớn",
+            "alert": "nguy cơ ngập lụt"
+        }
+    }
+    
+    Output: Region detection, risk analysis, insurance recommendations, map overview
+    """
+    try:
+        # Validate input
+        if 'user_profile' not in request:
+            raise HTTPException(status_code=400, detail="user_profile is required")
+        if 'weather_data' not in request:
+            raise HTTPException(status_code=400, detail="weather_data is required")
+        
+        user_profile = request['user_profile']
+        weather_data = request['weather_data']
+        
+        # Validate required fields
+        if 'address' not in user_profile or not user_profile['address']:
+            raise HTTPException(status_code=400, detail="Address is required in user_profile")
+        
+        print(f"\n🌍 AI Geo-Analyst analyzing...")
+        print(f"   User: {user_profile.get('full_name', 'N/A')}")
+        print(f"   Address: {user_profile.get('address', 'N/A')}")
+        print(f"   Weather: {weather_data.get('condition', 'N/A')}")
+        
+        # Analyze with Geo-Analyst
+        analysis_result = GeoAnalyst.analyze_user_location(user_profile, weather_data)
+        
+        if 'error' in analysis_result:
+            print(f"   ❌ Analysis error: {analysis_result['error']}")
+            raise HTTPException(status_code=400, detail=analysis_result['error'])
+        
+        print(f"   ✅ Region: {analysis_result.get('user_region', 'Unknown')}")
+        print(f"   ✅ Risk: {analysis_result.get('risk_level', 'Unknown')}")
+        print(f"   ✅ Recommended {len(analysis_result.get('recommended_packages', []))} packages")
+        
+        return analysis_result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"\n❌ Geo-analysis failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Geo-analysis failed: {str(e)}")
+
+
+@app.post("/analyze-document-location")
+async def analyze_document_location(document_id: str):
+    """
+    Extract address from uploaded CCCD document and analyze location
+    Returns full geo-analysis with insurance recommendations
+    """
+    db = get_db()
+    try:
+        # Get document
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        print(f"\n📍 Analyzing document location: {document_id}")
+        
+        # Check if we have extracted person info
+        person_data = None
+        if document.person_data:
+            import json
+            person_data = json.loads(document.person_data)
+        else:
+            # Extract person info first
+            print("   ⚠️  No person data found, extracting...")
+            pages = db.query(Page).filter(Page.document_id == document_id).order_by(Page.page_index).all()
+            
+            if not pages or not pages[0].image_url:
+                raise HTTPException(status_code=400, detail="No image found for this document")
+            
+            from app.ai_service import get_image_path_from_url, extract_person_info
+            image_path = get_image_path_from_url(pages[0].image_url)
+            
+            if not image_path or not os.path.exists(image_path):
+                raise HTTPException(status_code=400, detail=f"Image file not found: {image_path}")
+            
+            person_data = await extract_person_info(image_path)
+            
+            if "error" in person_data:
+                raise HTTPException(status_code=400, detail=person_data['error'])
+            
+            # Save to database
+            document.person_data = json.dumps(person_data, ensure_ascii=False)
+            db.commit()
+        
+        # Prepare user profile
+        # IMPORTANT: Prioritize placeOfOrigin (quê quán) for disaster analysis
+        # Quê quán is more relevant for long-term risk assessment than temporary address
+        user_profile = {
+            "full_name": person_data.get('fullName', 'N/A'),
+            "dob": person_data.get('dateOfBirth', 'N/A'),
+            "address": person_data.get('placeOfOrigin', person_data.get('address', '')),
+            "place_of_origin": person_data.get('placeOfOrigin', ''),
+            "document_type": person_data.get('documentType', 'CCCD')
+        }
+        
+        # Mock weather data (in production, fetch from OpenWeather API)
+        # For now, use data from disasterData based on detected region
+        weather_data = {
+            "source": "Mock Weather Service",
+            "temperature": "28°C",
+            "condition": "Mưa lớn",
+            "alert": "Nguy cơ ngập lụt"
+        }
+        
+        print(f"   📋 User: {user_profile['full_name']}")
+        print(f"   📍 Address: {user_profile['address']}")
+        
+        # Analyze with Geo-Analyst
+        analysis_result = GeoAnalyst.analyze_user_location(user_profile, weather_data)
+        
+        if 'error' in analysis_result:
+            raise HTTPException(status_code=400, detail=analysis_result['error'])
+        
+        # Save analysis result to document
+        if not document.ai_result_json:
+            document.ai_result_json = json.dumps({}, ensure_ascii=False)
+        
+        current_result = json.loads(document.ai_result_json)
+        current_result['geo_analysis'] = analysis_result
+        document.ai_result_json = json.dumps(current_result, ensure_ascii=False)
+        db.commit()
+        
+        print(f"   ✅ Analysis complete: {analysis_result.get('user_region', 'Unknown')} - {analysis_result.get('risk_level', 'Unknown')}")
+        
+        return {
+            "document_id": document_id,
+            "analysis": analysis_result,
+            "message": "Document location analyzed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"\n❌ Document location analysis failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.post("/gemini-prompt/geo-analyst")
+async def generate_geo_analyst_prompt(request: dict):
+    """
+    Generate Gemini prompt for geo-analyst (for testing/debugging)
+    Returns the exact prompt that would be sent to Gemini API
+    """
+    try:
+        if 'user_profile' not in request or 'weather_data' not in request:
+            raise HTTPException(
+                status_code=400, 
+                detail="Both user_profile and weather_data are required"
+            )
+        
+        prompt = generate_gemini_prompt(
+            user_profile=request['user_profile'],
+            weather_data=request['weather_data']
+        )
+        
+        return {
+            "prompt": prompt,
+            "message": "Gemini prompt generated successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prompt generation failed: {str(e)}")
+
+
+# ==================== DISASTER LOCATION ENDPOINTS ====================
+
+def _location_to_dict(location: DisasterLocation) -> dict:
+    """Helper function to convert DisasterLocation model to dict with parsed JSON"""
+    return {
+        "id": location.id,
+        "province": location.province,
+        "region": location.region,
+        "latitude": location.latitude,
+        "longitude": location.longitude,
+        "status": location.status,
+        "marker_color": location.marker_color,
+        "severity": location.severity,
+        "advice": location.advice,
+        "detail": location.detail,
+        "recommended_packages": json.loads(location.recommended_packages) if location.recommended_packages else [],
+        "weather_info": json.loads(location.weather_info) if location.weather_info else None,
+        "last_updated": location.last_updated.isoformat() if location.last_updated else None,
+        "created_at": location.created_at.isoformat() if location.created_at else None
+    }
+
+@app.get("/api/disaster-locations")
+async def get_all_disaster_locations():
+    """
+    Get all disaster locations with latest weather data
+    """
+    db = next(get_db())
+    try:
+        locations = db.query(DisasterLocation).all()
+        return [_location_to_dict(loc) for loc in locations]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch locations: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.get("/api/disaster-locations/region/{region}")
+async def get_locations_by_region(region: str):
+    """
+    Get disaster locations filtered by region (Bắc, Trung, Nam)
+    """
+    db = next(get_db())
+    try:
+        locations = db.query(DisasterLocation).filter(
+            DisasterLocation.region == region
+        ).all()
+        return [_location_to_dict(loc) for loc in locations]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch locations: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.get("/api/disaster-locations/search")
+async def search_locations(province: Optional[str] = None, status: Optional[str] = None):
+    """
+    Search disaster locations by province name or status
+    """
+    db = next(get_db())
+    try:
+        query = db.query(DisasterLocation)
+        
+        if province:
+            query = query.filter(DisasterLocation.province.ilike(f"%{province}%"))
+        
+        if status:
+            query = query.filter(DisasterLocation.status == status)
+        
+        locations = query.all()
+        return [_location_to_dict(loc) for loc in locations]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.get("/api/disaster-locations/{location_id}")
+async def get_location_by_id(location_id: str):
+    """
+    Get a single disaster location by ID
+    """
+    db = next(get_db())
+    try:
+        location = db.query(DisasterLocation).filter(
+            DisasterLocation.id == location_id
+        ).first()
+        
+        if not location:
+            raise HTTPException(status_code=404, detail="Location not found")
+        
+        return _location_to_dict(location)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch location: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.post("/api/disaster-locations/update-weather")
+async def update_all_weather():
+    """
+    Update weather data for all disaster locations (Cron job endpoint)
+    """
+    db = next(get_db())
+    try:
+        print("\n🌦️  Starting weather update for all locations...")
+        results = await WeatherService.update_all_locations(db)
+        
+        return {
+            "message": "Weather update completed",
+            "total_locations": results['total'],
+            "successful_updates": results['success'],
+            "failed_updates": results['failed']
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Weather update failed: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.post("/api/disaster-locations/{location_id}/update-weather")
+async def update_location_weather(location_id: str):
+    """
+    Update weather data for a specific location
+    """
+    db = next(get_db())
+    try:
+        success = await WeatherService.update_location_weather(db, location_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="Location not found or update failed")
+        
+        # Get updated location
+        location = db.query(DisasterLocation).filter(
+            DisasterLocation.id == location_id
+        ).first()
+        
+        return {
+            "message": "Weather updated successfully",
+            "location": _location_to_dict(location)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Weather update failed: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.post("/api/disaster-locations")
+async def create_disaster_location(location: DisasterLocationCreate):
+    """
+    Create a new disaster location (Admin only)
+    """
+    db = next(get_db())
+    try:
+        # Check if location already exists
+        existing = db.query(DisasterLocation).filter(
+            DisasterLocation.id == location.id
+        ).first()
+        
+        if existing:
+            raise HTTPException(status_code=400, detail="Location ID already exists")
+        
+        # Create new location
+        new_location = DisasterLocation(
+            id=location.id,
+            province=location.province,
+            region=location.region,
+            latitude=location.latitude,
+            longitude=location.longitude,
+            status=location.status,
+            marker_color=location.marker_color,
+            severity=location.severity,
+            advice=location.advice,
+            detail=location.detail,
+            recommended_packages=json.dumps(location.recommended_packages or [], ensure_ascii=False)
+        )
+        
+        db.add(new_location)
+        db.commit()
+        db.refresh(new_location)
+        
+        return _location_to_dict(new_location)
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create location: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.put("/api/disaster-locations/{location_id}")
+async def update_disaster_location(location_id: str, location_update: DisasterLocationUpdate):
+    """
+    Update a disaster location (Admin only)
+    """
+    db = next(get_db())
+    try:
+        location = db.query(DisasterLocation).filter(
+            DisasterLocation.id == location_id
+        ).first()
+        
+        if not location:
+            raise HTTPException(status_code=404, detail="Location not found")
+        
+        # Update fields if provided
+        update_data = location_update.dict(exclude_unset=True)
+        
+        for field, value in update_data.items():
+            if field == "recommended_packages" and value is not None:
+                setattr(location, field, json.dumps(value, ensure_ascii=False))
+            elif field == "weather_info" and value is not None:
+                setattr(location, field, json.dumps(value, ensure_ascii=False))
+            elif value is not None:
+                setattr(location, field, value)
+        
+        location.last_updated = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(location)
+        
+        return _location_to_dict(location)
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update location: {str(e)}")
     finally:
         db.close()
 

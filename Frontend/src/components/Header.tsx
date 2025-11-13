@@ -40,6 +40,7 @@ export default function Header() {
   const navigation = [
     { name: 'Trang chủ', href: '/' },
     { name: 'Sản phẩm bảo hiểm', href: '/products' },
+    { name: 'Bản đồ thiên tai', href: '/disaster-map' },
     { name: 'Về chúng tôi', href: '/about' },
     { name: 'Liên hệ', href: '/contact' },
   ]
@@ -47,7 +48,7 @@ export default function Header() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-[90] shadow-sm">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -107,16 +108,16 @@ export default function Header() {
                 >
                   <div className="w-8 h-8 bg-gradient-to-br from-trust-600 to-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">
-                      {user.name.charAt(0).toUpperCase()}
+                      {user.name ? user.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                  <span className="text-sm font-medium text-gray-700">{user.name || user.email}</span>
                 </button>
                 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[91]">
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
                     
@@ -229,7 +230,7 @@ export default function Header() {
                 // User logged in - mobile menu
                 <>
                   <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                    <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
                   
