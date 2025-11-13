@@ -23,8 +23,7 @@ import {
   UserPlus,
   IdCard,
   Heart,
-  Settings,
-  Lock
+  Settings
 } from 'lucide-react';
 
 interface UserProfile {
