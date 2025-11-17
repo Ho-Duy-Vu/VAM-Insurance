@@ -70,7 +70,7 @@ Comprehensive document handling capabilities powered by:
 - **ReportLab 4.0.7** - Dynamic PDF generation with custom layouts
 
 ### Deployment Infrastructure
-The platform is deployed using modern cloud infrastructure with the frontend hosted on Vercel for global CDN distribution and automatic deployments. The backend runs on Render with container-based deployment, environment-based configuration management, and automated health monitoring. The system includes Docker support for local development and alternative deployment options.
+The platform is deployed using modern serverless infrastructure with the frontend hosted on **Vercel** for global CDN distribution and automatic deployments. The backend runs on **Cloudflare Workers** with edge computing capabilities, providing ultra-low latency worldwide. File storage is handled by **Cloudflare R2** (S3-compatible object storage), and database operations use **Cloudflare D1** (serverless SQLite). This fully serverless architecture ensures zero server management, automatic scaling, and cost-effective operations on free tiers.
 
 ## Architecture
 
@@ -107,7 +107,7 @@ The responsive design ensures seamless access across desktop, tablet, and mobile
 
 ## Deployment
 
-The platform is production-ready with automated deployment pipelines. The frontend deploys to Vercel with automatic builds triggered by GitHub commits, global CDN distribution for fast load times, and environment-based configuration for development, staging, and production. The backend deploys to Render with containerized Python application, automatic dependency management, and health check monitoring for reliability.
+The platform is production-ready with fully serverless deployment architecture. The frontend deploys to **Vercel** with automatic builds triggered by GitHub commits, global CDN distribution for fast load times, and environment-based configuration. The backend runs on **Cloudflare Workers** at the edge with sub-50ms response times globally, automatic HTTPS, DDoS protection, and unlimited bandwidth. File uploads are stored in **Cloudflare R2** with 10GB free storage, and data persists in **Cloudflare D1** serverless database. This architecture eliminates server maintenance while providing enterprise-grade performance and reliability on free tiers.
 
 ## Development
 
