@@ -20,8 +20,8 @@ import {
   LogOut,
   Trash2
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '..\/..\/components\/ui/card'
-import { Button } from '..\/..\/components\/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
 
 export default function SettingsPage() {
   const navigate = useNavigate()

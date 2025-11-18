@@ -110,57 +110,57 @@ export const InsurancePackageCard: React.FC<InsurancePackageCardProps> = ({ pack
         </div>
       )}
       
-      <CardHeader className="relative z-10 pb-4 pt-8">
+      <CardHeader className="relative z-10 pb-4 pt-6 md:pt-8">
         {/* Icon Circle */}
-        <div className="flex justify-center mb-4">
-          <div className={`w-20 h-20 ${colors.bg} rounded-full flex items-center justify-center shadow-lg border-2 ${colors.border} group-hover:scale-110 transition-all duration-300`}>
-            <Icon className={`w-10 h-10 ${colors.text}`} />
+        <div className="flex justify-center mb-3 md:mb-4">
+          <div className={`w-16 h-16 md:w-20 md:h-20 ${colors.bg} rounded-full flex items-center justify-center shadow-lg border-2 ${colors.border} group-hover:scale-110 transition-all duration-300`}>
+            <Icon className={`w-8 h-8 md:w-10 md:h-10 ${colors.text}`} />
           </div>
         </div>
         
         {/* Package Name */}
-        <CardTitle className="text-center text-gray-900 dark:text-white text-xl font-bold">
+        <CardTitle className="text-center text-gray-900 dark:text-white text-base md:text-lg lg:text-xl font-bold px-2 line-clamp-2">
           {pkg.name}
         </CardTitle>
         
         {/* Period */}
-        <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-1 font-medium">
+        <p className="text-center text-gray-600 dark:text-gray-400 text-xs md:text-sm mt-1 font-medium">
           {pkg.period}
         </p>
       </CardHeader>
       
-      <CardContent className="relative z-10 space-y-4">
+      <CardContent className="relative z-10 space-y-3 md:space-y-4">
         {/* Price */}
-        <div className="text-center py-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="text-center py-3 md:py-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white px-2">
             {formatPrice(pkg.price)}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-medium">
+          <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 font-medium px-2">
             Quyền lợi: <span className="font-semibold text-gray-900 dark:text-white">{pkg.coverage}</span>
           </div>
         </div>
         
         {/* Description */}
-        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed min-h-[60px] font-medium">
+        <p className="text-gray-700 dark:text-gray-300 text-xs md:text-sm leading-relaxed font-medium line-clamp-3 px-1">
           {pkg.description}
         </p>
         
         {/* Benefits List */}
-        <div className="space-y-3 pt-2">
-          <h4 className="font-bold text-gray-900 dark:text-white text-sm flex items-center gap-2">
-            <Check className={`w-4 h-4 ${colors.text}`} />
-            Quyền lợi nổi bật:
+        <div className="space-y-2 pt-2">
+          <h4 className="font-bold text-gray-900 dark:text-white text-xs md:text-sm flex items-center gap-2">
+            <Check className={`w-3.5 h-3.5 md:w-4 md:h-4 ${colors.text} flex-shrink-0`} />
+            <span>Quyền lợi nổi bật:</span>
           </h4>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 md:space-y-2">
             {pkg.benefits.slice(0, 4).map((benefit, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                <Check className={`w-4 h-4 ${colors.text} mt-0.5 flex-shrink-0`} />
-                <span>{benefit}</span>
+              <li key={idx} className="flex items-start gap-2 text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">
+                <Check className={`w-3.5 h-3.5 md:w-4 md:h-4 ${colors.text} mt-0.5 flex-shrink-0`} />
+                <span className="line-clamp-2 leading-snug">{benefit}</span>
               </li>
             ))}
           </ul>
           {pkg.benefits.length > 4 && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 italic pl-6 font-medium">
+            <p className="text-xs text-gray-600 dark:text-gray-400 italic pl-5 md:pl-6 font-medium">
               + {pkg.benefits.length - 4} quyền lợi khác...
             </p>
           )}
@@ -170,7 +170,7 @@ export const InsurancePackageCard: React.FC<InsurancePackageCardProps> = ({ pack
         <div className="flex flex-col gap-2 pt-4">
           <Button
             onClick={handleBuyNow}
-            className={`w-full bg-gradient-to-r ${gradientClass} hover:opacity-90 text-white font-bold shadow-lg group/btn transition-all duration-300 h-11`}
+            className={`w-full bg-gradient-to-r ${gradientClass} hover:opacity-90 text-white font-bold shadow-lg group/btn transition-all duration-300 h-10 md:h-11 text-sm md:text-base`}
           >
             <span>Mua Ngay</span>
             <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
@@ -179,7 +179,7 @@ export const InsurancePackageCard: React.FC<InsurancePackageCardProps> = ({ pack
           <Button
             onClick={handleViewDetails}
             variant="outline"
-            className="w-full border-2 border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white font-semibold h-11"
+            className="w-full border-2 border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white font-semibold h-10 md:h-11 text-sm md:text-base"
           >
             Xem Chi Tiết
           </Button>
