@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Save, AlertCircle, CheckCircle, FileText } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card';
-import { Button } from '..\/..\/components\/ui/button';
-import { useInsuranceStore } from '..\/..\/store\/insurance';
-import { formatPrice } from '..\/..\/data\/insurancePackages';
-import { useToast } from '..\/..\/hooks\/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { useInsuranceStore } from '../../store/insurance';
+import { formatPrice } from '../../data/insurancePackages';
+import { useToast } from '../../hooks/use-toast';
 
 interface FormData {
   ho_ten: string;
