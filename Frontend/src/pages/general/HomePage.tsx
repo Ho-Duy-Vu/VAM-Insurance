@@ -11,9 +11,9 @@ import {
   MapPin,
   CloudRain,
 } from 'lucide-react'
-import { Card, CardContent } from '..\/..\/components\/ui/card'
-import { Button } from '..\/..\/components\/ui/button'
-import { InsurancePackagesSection } from '..\/..\/components\/InsurancePackagesSection'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { InsurancePackagesSection } from '../../components/InsurancePackagesSection'
 
 interface InsuranceType {
   id: string
@@ -272,36 +272,38 @@ export default function HomePage() {
         <InsurancePackagesSection />
 
       {/* Insurance Types Grid */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      <section className="container mx-auto px-4 py-12 md:py-16 lg:py-20">
+        <div className="text-center mb-8 md:mb-10 lg:mb-12">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
             Các loại bảo hiểm chúng tôi hỗ trợ
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-base md:text-lg text-gray-600 px-4">
             AI của chúng tôi có thể phân tích và tư vấn cho mọi loại hợp đồng bảo hiểm
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
           {insuranceTypes.map((type) => (
             <Card 
               key={type.id} 
-              className="group hover:shadow-trust-lg transition-all duration-300 cursor-pointer border-gray-200 hover:border-trust-300 overflow-hidden"
+              className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-200 hover:border-trust-400 overflow-hidden"
             >
-              <CardContent className="p-8">
-                <div className={`w-16 h-16 ${type.bgColor} rounded-2xl flex items-center justify-center ${type.color} mb-6 group-hover:scale-110 transition-transform duration-300`}>
+              <CardHeader className="pb-3">
+                <div className={`w-14 h-14 md:w-16 md:h-16 ${type.bgColor} rounded-2xl flex items-center justify-center ${type.color} mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   {type.icon}
                 </div>
                 
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-trust-600 transition-colors">
+                <CardTitle className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-trust-600 transition-colors">
                   {type.title}
-                </h3>
-                
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <CardDescription className="text-gray-600 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
                   {type.description}
-                </p>
+                </CardDescription>
 
-                <div className="flex items-center text-trust-600 font-medium group-hover:gap-2 transition-all">
+                <div className="flex items-center text-trust-600 font-medium group-hover:gap-2 transition-all text-sm md:text-base">
                   <span>Tìm hiểu thêm</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

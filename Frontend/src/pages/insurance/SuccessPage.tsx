@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useInsuranceStore } from '..\/..\/store\/insurance';
-import { Card, CardContent } from '..\/..\/components\/ui/card';
-import { Button } from '..\/..\/components\/ui/button';
+import { useInsuranceStore } from '../../store/insurance';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { 
   CheckCircle2, 
   Download, 
@@ -16,7 +16,7 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
-import { formatPrice } from '..\/..\/data\/insurancePackages';
+import { formatPrice } from '../../data/insurancePackages';
 
 export const SuccessPage = () => {
   const navigate = useNavigate();
@@ -83,17 +83,17 @@ export const SuccessPage = () => {
 
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-6 shadow-lg animate-bounce">
-            <CheckCircle2 className="w-12 h-12 text-white" />
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-4 md:mb-6 shadow-lg animate-bounce">
+            <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">
             Chúc Mừng! 🎉
           </h1>
-          <p className="text-xl text-gray-600 mb-2">
+          <p className="text-lg md:text-xl text-gray-600 mb-2 px-4">
             Bạn đã mua bảo hiểm thành công
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs md:text-sm text-gray-500 px-4">
             Hợp đồng của bạn đã được kích hoạt và có hiệu lực ngay lập tức
           </p>
         </div>
@@ -123,27 +123,29 @@ export const SuccessPage = () => {
         </Card>
 
         {/* Contract Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
           {/* Package Info */}
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${selectedPackage.color} flex items-center justify-center flex-shrink-0`}>
                   <Package className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-600 mb-1">Gói Bảo Hiểm</p>
-                  <h3 className="font-semibold text-gray-900 mb-2">{selectedPackage.name}</h3>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Shield className="w-4 h-4" />
-                      <span>Quyền lợi: {selectedPackage.coverage}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>Thời hạn: {selectedPackage.period}</span>
-                    </div>
-                  </div>
+                <CardTitle className="text-base md:text-lg">Gói Bảo Hiểm</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <CardDescription className="font-semibold text-gray-900 mb-3 text-base md:text-lg">
+                {selectedPackage.name}
+              </CardDescription>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  <span>Quyền lợi: {selectedPackage.coverage}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span>Thời hạn: {selectedPackage.period}</span>
                 </div>
               </div>
             </CardContent>
@@ -151,30 +153,30 @@ export const SuccessPage = () => {
 
           {/* Payment Info */}
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                   <CreditCard className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-600 mb-1">Thông Tin Thanh Toán</p>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    {formatPrice(currentContract.paymentInfo.amount)}
-                  </h3>
-                  <div className="space-y-1">
-                    <div className="text-sm text-gray-600">
-                      Phương thức: <span className="font-medium">
-                        {currentContract.paymentInfo.method === 'qr_code' ? 'Quét mã QR' : 'Thẻ tín dụng'}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Mã GD: <span className="font-medium">{currentContract.paymentInfo.transactionId}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-green-600 font-medium">Đã thanh toán</span>
-                    </div>
-                  </div>
+                <CardTitle className="text-base md:text-lg">Thông Tin Thanh Toán</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <CardDescription className="font-semibold text-gray-900 mb-3 text-lg md:text-xl">
+                {formatPrice(currentContract.paymentInfo.amount)}
+              </CardDescription>
+              <div className="space-y-1">
+                <div className="text-xs md:text-sm text-gray-600">
+                  Phương thức: <span className="font-medium">
+                    {currentContract.paymentInfo.method === 'qr_code' ? 'Quét mã QR' : 'Thẻ tín dụng'}
+                  </span>
+                </div>
+                <div className="text-xs md:text-sm text-gray-600">
+                  Mã GD: <span className="font-medium">{currentContract.paymentInfo.transactionId}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs md:text-sm text-green-600 font-medium">Đã thanh toán</span>
                 </div>
               </div>
             </CardContent>
@@ -183,12 +185,14 @@ export const SuccessPage = () => {
 
         {/* Benefits Summary */}
         <Card className="mb-6">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
               <Shield className="w-5 h-5 text-blue-600" />
               Quyền Lợi Bảo Hiểm
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
               {selectedPackage.benefits.map((benefit, index) => (
                 <div key={index} className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -201,8 +205,10 @@ export const SuccessPage = () => {
 
         {/* Next Steps */}
         <Card className="mb-6 bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Các Bước Tiếp Theo</h3>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Các Bước Tiếp Theo</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0 font-semibold">
@@ -243,8 +249,10 @@ export const SuccessPage = () => {
 
         {/* Contact Info */}
         <Card className="mb-6">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Thông Tin Liên Hệ</h3>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Thông Tin Liên Hệ</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -269,20 +277,20 @@ export const SuccessPage = () => {
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <Button
             onClick={handleDownloadContract}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-6 text-lg"
+            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-5 md:py-6 text-base md:text-lg"
           >
-            <Download className="w-5 h-5 mr-2" />
+            <Download className="w-4 h-4 md:w-5 md:h-5 mr-2" />
             Tải Xuống Hợp Đồng
           </Button>
           <Button
             onClick={handleBackHome}
             variant="outline"
-            className="flex-1 border-2 border-gray-300 hover:bg-gray-50 font-semibold py-6 text-lg"
+            className="flex-1 border-2 border-gray-300 hover:bg-gray-50 font-semibold py-5 md:py-6 text-base md:text-lg"
           >
-            <Home className="w-5 h-5 mr-2" />
+            <Home className="w-4 h-4 md:w-5 md:h-5 mr-2" />
             Về Trang Chủ
           </Button>
         </div>

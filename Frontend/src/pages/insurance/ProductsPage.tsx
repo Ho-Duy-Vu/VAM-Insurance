@@ -198,47 +198,47 @@ export default function ProductsPage() {
         </section>
 
         {/* Products Grid */}
-        <section className="py-16">
+        <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
               {products.map((product) => (
                 <Card 
                   key={product.id}
-                  className="border-2 hover:border-trust-300 hover:shadow-trust-lg transition-all duration-300 group"
+                  className="border-2 hover:border-trust-400 hover:shadow-xl transition-all duration-300 group"
                 >
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`w-16 h-16 ${product.bgColor} rounded-2xl flex items-center justify-center ${product.color} group-hover:scale-110 transition-transform`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between mb-3 md:mb-4">
+                      <div className={`w-14 h-14 md:w-16 md:h-16 ${product.bgColor} rounded-2xl flex items-center justify-center ${product.color} group-hover:scale-110 transition-transform`}>
                         {product.icon}
                       </div>
-                      <span className="text-sm font-semibold text-trust-700 bg-trust-50 px-3 py-1 rounded-full">
+                      <span className="text-xs md:text-sm font-semibold text-trust-700 bg-trust-50 px-2 md:px-3 py-1 rounded-full">
                         {product.price}
                       </span>
                     </div>
-                    <CardTitle className="text-xl mb-2">{product.title}</CardTitle>
-                    <p className="text-sm text-gray-600">{product.description}</p>
+                    <CardTitle className="text-lg md:text-xl mb-2">{product.title}</CardTitle>
+                    <p className="text-xs md:text-sm text-gray-600">{product.description}</p>
                   </CardHeader>
 
-                  <CardContent>
-                    <div className="space-y-3 mb-6">
-                      <h4 className="font-semibold text-gray-900 text-sm">Quyền lợi bảo hiểm:</h4>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
+                      <h4 className="font-semibold text-gray-900 text-xs md:text-sm">Quyền lợi bảo hiểm:</h4>
                       {product.features.map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-success-600 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-gray-700">{feature}</span>
+                          <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-success-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-xs md:text-sm text-gray-700">{feature}</span>
                         </div>
                       ))}
                     </div>
 
                     <div className="flex gap-2">
                       <Link to={getProductDetailRoute(product.id)} className="flex-1">
-                        <Button variant="outline" className="w-full border-trust-300 text-trust-700 hover:bg-trust-50">
+                        <Button variant="outline" className="w-full border-trust-300 text-trust-700 hover:bg-trust-50 text-xs md:text-sm h-9 md:h-10">
                           Chi tiết
-                          <ArrowRight className="w-4 h-4 ml-2" />
+                          <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-2" />
                         </Button>
                       </Link>
                       <Link to="/contact" className="flex-1">
-                        <Button className="w-full bg-trust-600 hover:bg-trust-700 text-white">
+                        <Button className="w-full bg-trust-600 hover:bg-trust-700 text-white text-xs md:text-sm h-9 md:h-10">
                           Tư vấn ngay
                         </Button>
                       </Link>
@@ -251,24 +251,24 @@ export default function ProductsPage() {
         </section>
 
         {/* Natural Disaster Insurance Section */}
-        <section className="py-16 bg-gradient-to-br from-blue-50 via-cyan-50 to-slate-50">
+        <section className="py-12 md:py-16 bg-gradient-to-br from-blue-50 via-cyan-50 to-slate-50">
           <div className="container mx-auto px-4">
             {/* Section Header */}
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-full mb-4">
-                <AlertTriangle className="w-5 h-5" />
-                <span className="font-semibold">BẢO HIỂM THIÊN TAI</span>
+            <div className="text-center mb-8 md:mb-12">
+              <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 md:px-4 py-2 rounded-full mb-3 md:mb-4">
+                <AlertTriangle className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="font-semibold text-xs md:text-sm">BẢO HIỂM THIÊN TAI</span>
               </div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4 px-4">
                 Bảo Vệ Tài Sản Khỏi Thiên Tai
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
                 Đặc biệt dành cho khu vực Miền Bắc và Miền Trung - Bảo vệ nhà cửa, tài sản khỏi ngập lụt, bão, lũ quét
               </p>
             </div>
 
             {/* Natural Disaster Packages */}
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
               {insurancePackages
                 .filter(pkg => pkg.type === 'natural_disaster')
                 .map((pkg) => {
