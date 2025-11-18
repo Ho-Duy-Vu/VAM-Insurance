@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPackageById, formatPrice } from '../../data/insurancePackages';
 import { useInsuranceStore } from '../../store/insurance';
-import { Card, CardContent } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { 
@@ -100,7 +100,7 @@ export const PackageDetailPage = () => {
 
         {/* Package Header */}
         <Card className="mb-6 overflow-hidden bg-white border-2 border-gray-200">
-          <CardContent className="p-8">
+          <CardHeader className="p-8 pb-4">
             <div className="flex flex-col md:flex-row items-start gap-6">
               {/* Icon with colored background */}
               <div className="w-24 h-24 rounded-2xl bg-blue-50 border-2 border-blue-200 flex items-center justify-center shadow-lg flex-shrink-0">
@@ -116,9 +116,17 @@ export const PackageDetailPage = () => {
                   </div>
                 )}
                 
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{packageData.name}</h1>
-                <p className="text-gray-700 mb-6 font-medium text-sm md:text-base">{packageData.description}</p>
-                
+                <CardTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  {packageData.name}
+                </CardTitle>
+                <CardDescription className="text-gray-700 mb-6 font-medium text-sm md:text-base">
+                  {packageData.description}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="px-8 pb-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   <div className="flex items-center gap-3 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
@@ -152,8 +160,6 @@ export const PackageDetailPage = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 

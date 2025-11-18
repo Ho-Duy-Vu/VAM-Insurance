@@ -19,7 +19,7 @@ import {
   Wind,
   CloudRain
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card'
 import { Button } from './ui/button'
 import type { InsurancePackage } from '../types/insurance'
 import { formatPrice } from '../data/insurancePackages'
@@ -124,9 +124,9 @@ export const InsurancePackageCard: React.FC<InsurancePackageCardProps> = ({ pack
         </CardTitle>
         
         {/* Period */}
-        <p className="text-center text-gray-600 dark:text-gray-400 text-xs md:text-sm mt-1 font-medium">
+        <CardDescription className="text-center text-gray-600 dark:text-gray-400 text-xs md:text-sm mt-1 font-medium">
           {pkg.period}
-        </p>
+        </CardDescription>
       </CardHeader>
       
       <CardContent className="relative z-10 space-y-3 md:space-y-4">
@@ -167,7 +167,7 @@ export const InsurancePackageCard: React.FC<InsurancePackageCardProps> = ({ pack
         </div>
         
         {/* Action Buttons */}
-        <div className="flex flex-col gap-2 pt-4">
+        <CardFooter className="flex-col gap-2 pt-4 px-0">
           <Button
             onClick={handleBuyNow}
             className={`w-full bg-gradient-to-r ${gradientClass} hover:opacity-90 text-white font-bold shadow-lg group/btn transition-all duration-300 h-10 md:h-11 text-sm md:text-base`}
@@ -183,7 +183,7 @@ export const InsurancePackageCard: React.FC<InsurancePackageCardProps> = ({ pack
           >
             Xem Chi Tiết
           </Button>
-        </div>
+        </CardFooter>
       </CardContent>
       
       {/* Hover Glow Effect */}
