@@ -20,9 +20,9 @@
     "jsx": "react-jsx",
 
     /* Path aliases */
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     },
 
     /* Linting */
