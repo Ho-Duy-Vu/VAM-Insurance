@@ -9,7 +9,7 @@ interface User {
   token: string
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null
   login: (userData: User) => void
   logout: () => void
