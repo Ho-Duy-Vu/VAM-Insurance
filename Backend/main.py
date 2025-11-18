@@ -432,19 +432,46 @@ app = FastAPI(
 
 # Configure CORS for Frontend
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
-# Production: Add your Vercel domain here after deployment
+
+# Allowed origins for CORS
 allowed_origins = [
-    FRONTEND_URL,
     "http://localhost:5173",
     "http://localhost:5174", 
     "http://localhost:3000",
-    "https://*.vercel.app",  # Allow all Vercel preview deployments
-    # Add your production domain after deployment:
-    # "https://vam-insurance.vercel.app"
 ]
 
+# Add production Vercel URL if configured
+if FRONTEND_URL and FRONTEND_URL != "http://localhost:5173":
+    allowed_origins.append(FRONTEND_URL)
+
+# Allow all Vercel preview deployments (*.vercel.app)
+# This is a more permissive approach for development
+import re
+def is_vercel_domain(origin: str) -> bool:
+    """Check if origin is a Vercel domain"""
+    return bool(re.match(r"https://.*\.vercel\.app$", origin))
+
+# Custom CORS middleware to handle Vercel domains
+from starlette.middleware.cors import CORSMiddleware as StarleteCORSMiddleware
+from starlette.types import ASGIApp, Receive, Scope, Send
+
+class CustomCORSMiddleware(StarleteCORSMiddleware):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            origin = None
+            for header_name, header_value in scope.get("headers", []):
+                if header_name == b"origin":
+                    origin = header_value.decode("utf-8")
+                    break
+            
+            # Allow Vercel preview domains dynamically
+            if origin and is_vercel_domain(origin) and origin not in self.allow_origins:
+                self.allow_origins.append(origin)
+        
+        await super().__call__(scope, receive, send)
+
 app.add_middleware(
-    CORSMiddleware,
+    CustomCORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
@@ -2686,6 +2713,65 @@ async def get_location_by_id(location_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to fetch location: {str(e)}")
     finally:
         db.close()
+
+
+@app.get("/api/weather")
+async def get_weather_by_coordinates(lat: float, lon: float):
+    """
+    Get weather data for specific coordinates using OpenWeatherMap API
+    Frontend can call this to get real-time weather data
+    
+    Query params:
+    - lat: Latitude (e.g., 10.8231 for Ho Chi Minh City)
+    - lon: Longitude (e.g., 106.6297 for Ho Chi Minh City)
+    
+    Returns:
+    {
+        "temperature": 29.03,
+        "feels_like": 33.57,
+        "humidity": 74,
+        "pressure": 1011,
+        "condition": "Clouds",
+        "description": "mây cụm",
+        "wind_speed": 3.09,
+        "clouds": 75,
+        "rain_1h": 0,
+        "rain_3h": 0,
+        "visibility": 10000,
+        "status": "ổn_định",
+        "severity": "Thấp",
+        "marker_color": "green",
+        "fetched_at": "2025-11-17T10:00:00"
+    }
+    """
+    try:
+        print(f"\n🌤️  Fetching weather for coordinates: lat={lat}, lon={lon}")
+        
+        # Fetch weather from OpenWeatherMap
+        weather_info = await WeatherService.fetch_weather(lat, lon)
+        
+        if not weather_info:
+            raise HTTPException(status_code=500, detail="Failed to fetch weather data from OpenWeatherMap")
+        
+        # Determine disaster status and severity
+        status = WeatherService.determine_status(weather_info)
+        severity = WeatherService.determine_severity(status)
+        marker_color = WeatherService.determine_marker_color(status)
+        
+        # Add status information to weather data
+        weather_info['status'] = status
+        weather_info['severity'] = severity
+        weather_info['marker_color'] = marker_color
+        
+        print(f"   ✅ Weather fetched: {weather_info['temperature']}°C, {weather_info['condition']}, status: {status}")
+        
+        return weather_info
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"   ❌ Weather fetch error: {e}")
+        raise HTTPException(status_code=500, detail=f"Weather fetch failed: {str(e)}")
 
 
 @app.post("/api/disaster-locations/update-weather")

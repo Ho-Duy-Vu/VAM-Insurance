@@ -1,0 +1,27 @@
+services:
+  # Backend API Service
+  - type: web
+    name: vam-insurance-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 10080
+      - key: FRONTEND_URL
+        value: https://vam-insurance.vercel.app
+      - key: DATABASE_URL
+        value: sqlite:///./insurance.db
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        fromEnv: PORT

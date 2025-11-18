@@ -1,531 +1,345 @@
-# 🚀 HƯỚNG DẪN DEPLOY VAM INSURANCE PROJECT
+# 🚀 Deployment Guide: Vercel (Frontend) + Render (Backend)
 
-## 📋 Mục lục
-1. [Chuẩn bị trước khi deploy](#chuẩn-bị)
-2. [Option 1: Vercel + Render (Miễn phí)](#option-1-vercel--render)
-3. [Option 2: VPS (DigitalOcean/AWS)](#option-2-vps)
-4. [Option 3: Docker Deployment](#option-3-docker)
-5. [Cấu hình môi trường](#cấu-hình-môi-trường)
+This guide will help you deploy the VAM Insurance application with:
+- **Frontend**: React/Vite on Vercel
+- **Backend**: FastAPI on Render
 
 ---
 
-## 🔧 Chuẩn bị
+## 📋 Prerequisites
 
-### 1. Tạo tài khoản các dịch vụ cần thiết
+- GitHub account
+- Vercel account (free tier)
+- Render account (free tier)
+- Your API keys ready:
+  - `GEMINI_API_KEY`
+  - `OPENWEATHER_API_KEY`
 
-**Frontend (chọn 1):**
-- ✅ [Vercel](https://vercel.com) (Khuyến nghị)
-- [Netlify](https://netlify.com)
-- [GitHub Pages](https://pages.github.com)
+---
 
-**Backend (chọn 1):**
-- ✅ [Render](https://render.com) (Khuyến nghị - Free tier)
-- [Railway](https://railway.app)
-- [Fly.io](https://fly.io)
-- [Heroku](https://heroku.com)
+## 🎯 Part 1: Deploy Backend to Render
 
-**Database:**
-- SQLite (đang dùng) - OK cho development
-- PostgreSQL - Khuyến nghị cho production
-
-### 2. Push code lên GitHub
+### Step 1: Push Code to GitHub
 
 ```bash
-# Khởi tạo git repository (nếu chưa có)
-cd "D:\DỰ ÁN CHUNG\DU_AN_CUA_VU\VAM_TEAM"
-git init
 git add .
-git commit -m "Initial commit - ready for deployment"
-
-# Tạo repository trên GitHub rồi push
-git remote add origin https://github.com/VUHODEV/VAM-Insurance.git
-git branch -M main
-git push -u origin main
+git commit -m "Prepare for deployment"
+git push origin main
 ```
 
----
+### Step 2: Create New Web Service on Render
 
-## ⭐ Option 1: Vercel + Render (MIỄN PHÍ)
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click **"New +"** → **"Web Service"**
+3. Connect your GitHub repository
+4. Select `VAM-Insurance` repository
 
-### A. Deploy Frontend lên Vercel
+### Step 3: Configure Build Settings
 
-#### Bước 1: Chuẩn bị Frontend
+**Basic Settings:**
+- **Name**: `vam-insurance-api` (or your preferred name)
+- **Region**: Choose closest to your users (e.g., Singapore, Oregon)
+- **Branch**: `main`
+- **Root Directory**: `Backend`
+- **Runtime**: `Python 3`
+- **Build Command**:
+  ```bash
+  pip install -r requirements.txt
+  ```
+- **Start Command**:
+  ```bash
+  uvicorn main:app --host 0.0.0.0 --port $PORT
+  ```
 
-1. **Tạo file `.env.production` trong thư mục Frontend:**
+**Instance Type:**
+- Select **Free** tier
 
-```env
-VITE_API_URL=https://your-backend.onrender.com
-```
+### Step 4: Add Environment Variables
 
-2. **Update `vite.config.ts` nếu cần:**
+Click **"Advanced"** → **"Add Environment Variable"**
 
-```typescript
-export default defineConfig({
-  plugins: [react()],
-  base: '/',
-  build: {
-    outDir: 'dist',
-    sourcemap: false,
-  }
-})
-```
+Add these variables:
 
-#### Bước 2: Deploy
+| Key | Value | Notes |
+|-----|-------|-------|
+| `PYTHON_VERSION` | `3.11.0` | Python version |
+| `GEMINI_API_KEY` | `your-gemini-api-key` | From Google AI Studio |
+| `OPENWEATHER_API_KEY` | `your-openweather-key` | From OpenWeatherMap |
+| `SECRET_KEY` | *Generate random 32+ chars* | For JWT tokens |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` | 7 days |
+| `FRONTEND_URL` | `https://vam-insurance.vercel.app` | Will update after Vercel deploy |
+| `DATABASE_URL` | `sqlite:///./insurance.db` | SQLite database |
+| `HOST` | `0.0.0.0` | Listen on all interfaces |
 
-1. Truy cập https://vercel.com
-2. Click "New Project"
-3. Import repository từ GitHub: `VAM-Insurance`
-4. Cấu hình:
-   - **Framework Preset:** Vite
-   - **Root Directory:** `Frontend`
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
-   - **Environment Variables:**
-     - `VITE_API_URL` = `https://your-backend.onrender.com`
-
-5. Click "Deploy"
-6. Đợi 2-3 phút → Done! 🎉
-
-**URL Frontend:** `https://vam-insurance.vercel.app`
-
----
-
-### B. Deploy Backend lên Render
-
-#### Bước 1: Chuẩn bị Backend
-
-1. **Tạo file `render.yaml` trong thư mục Backend:**
-
-```yaml
-services:
-  - type: web
-    name: vam-backend
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
-      - key: DATABASE_URL
-        value: sqlite:///./vam_insurance.db
-```
-
-2. **Update `main.py` để hỗ trợ CORS:**
-
-```python
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://vam-insurance.vercel.app",
-        "http://localhost:5173"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
-#### Bước 2: Deploy
-
-1. Truy cập https://render.com
-2. Click "New" → "Web Service"
-3. Connect GitHub repository: `VAM-Insurance`
-4. Cấu hình:
-   - **Name:** `vam-backend`
-   - **Runtime:** `Python 3`
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - **Root Directory:** `Backend`
-   - **Instance Type:** Free
-
-5. Environment Variables:
-   - `PYTHON_VERSION` = `3.11.0`
-   - `DATABASE_URL` = `sqlite:///./vam_insurance.db`
-   - `GEMINI_API_KEY` = `your-api-key` (nếu có)
-
-6. Click "Create Web Service"
-7. Đợi 5-10 phút để build → Done! 🎉
-
-**URL Backend:** `https://vam-backend.onrender.com`
-
-#### Bước 3: Cập nhật Frontend với Backend URL
-
-Quay lại Vercel → Settings → Environment Variables:
-- Update `VITE_API_URL` = `https://vam-backend.onrender.com`
-- Redeploy
-
----
-
-## 🖥️ Option 2: Deploy lên VPS (DigitalOcean/AWS)
-
-### A. Chuẩn bị VPS
-
-1. **Tạo VPS:**
-   - DigitalOcean Droplet (Ubuntu 22.04, $6/tháng)
-   - AWS EC2 (t2.micro, free tier)
-   - Vultr, Linode
-
-2. **SSH vào VPS:**
-
+**To generate SECRET_KEY (32+ characters):**
 ```bash
-ssh root@your-server-ip
+# Python
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Or use online generator
+# https://randomkeygen.com/
 ```
 
-3. **Cài đặt dependencies:**
+### Step 5: Deploy Backend
 
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
+1. Click **"Create Web Service"**
+2. Wait 5-10 minutes for build to complete
+3. Once deployed, you'll get a URL like:
+   ```
+   https://vam-insurance-api.onrender.com
+   ```
+4. **Copy this URL** - you'll need it for Frontend setup
 
-# Install Python
-sudo apt install python3 python3-pip python3-venv -y
+### Step 6: Test Backend API
 
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install nodejs -y
+Visit these endpoints to verify:
+- Health check: `https://your-app.onrender.com/health`
+- API docs: `https://your-app.onrender.com/docs`
 
-# Install Nginx
-sudo apt install nginx -y
-
-# Install PM2 (process manager)
-sudo npm install -g pm2
-```
-
-### B. Deploy Backend
-
-```bash
-# Clone repository
-cd /var/www
-git clone https://github.com/VUHODEV/VAM-Insurance.git
-cd VAM-Insurance/Backend
-
-# Setup Python virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run with PM2
-pm2 start "uvicorn main:app --host 0.0.0.0 --port 8000" --name vam-backend
-pm2 save
-pm2 startup
-```
-
-### C. Deploy Frontend
-
-```bash
-cd /var/www/VAM-Insurance/Frontend
-
-# Install dependencies
-npm install
-
-# Build
-npm run build
-
-# Copy build to Nginx
-sudo cp -r dist/* /var/www/html/
-```
-
-### D. Cấu hình Nginx
-
-```bash
-sudo nano /etc/nginx/sites-available/vam-insurance
-```
-
-Nội dung:
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    # Frontend
-    location / {
-        root /var/www/html;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API
-    location /api {
-        proxy_pass http://localhost:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
+Expected response from `/health`:
+```json
+{
+  "status": "healthy",
+  "timestamp": 1700000000.0
 }
 ```
 
-```bash
-# Enable site
-sudo ln -s /etc/nginx/sites-available/vam-insurance /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-### E. Setup SSL (HTTPS)
-
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx -y
-
-# Get SSL certificate
-sudo certbot --nginx -d your-domain.com
-```
-
 ---
 
-## 🐳 Option 3: Docker Deployment
+## 🎨 Part 2: Deploy Frontend to Vercel
 
-### A. Tạo Dockerfile cho Backend
+### Step 1: Update Frontend Environment Variables
 
-**File: `Backend/Dockerfile`**
+1. Open `Frontend/.env.production`
+2. Replace the API URL with your Render backend URL:
+   ```env
+   VITE_API_URL=https://vam-insurance-api.onrender.com
+   ```
 
-```dockerfile
-FROM python:3.11-slim
+3. Commit the change:
+   ```bash
+   git add Frontend/.env.production
+   git commit -m "Update production API URL"
+   git push origin main
+   ```
 
-WORKDIR /app
+### Step 2: Deploy to Vercel
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+#### Option A: Using Vercel Dashboard (Recommended)
 
-COPY . .
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click **"Add New..."** → **"Project"**
+3. Import your GitHub repository `VAM-Insurance`
+4. Configure project:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `Frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Install Command**: `npm install`
 
-EXPOSE 8000
+5. **Environment Variables** (click "Add"):
+   | Key | Value |
+   |-----|-------|
+   | `VITE_API_URL` | `https://vam-insurance-api.onrender.com` |
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+6. Click **"Deploy"**
+7. Wait 2-3 minutes for deployment
+8. You'll get a URL like:
+   ```
+   https://vam-insurance.vercel.app
+   ```
 
-### B. Tạo Dockerfile cho Frontend
-
-**File: `Frontend/Dockerfile`**
-
-```dockerfile
-FROM node:20-alpine as build
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-**File: `Frontend/nginx.conf`**
-
-```nginx
-server {
-    listen 80;
-    server_name _;
-
-    location / {
-        root /usr/share/nginx/html;
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-### C. Docker Compose
-
-**File: `docker-compose.yml` (root của project)**
-
-```yaml
-version: '3.8'
-
-services:
-  backend:
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./Backend/data:/app/data
-    environment:
-      - DATABASE_URL=sqlite:///./vam_insurance.db
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-```
-
-### D. Deploy với Docker
+#### Option B: Using Vercel CLI
 
 ```bash
-# Build và chạy
-docker-compose up -d
+# Install Vercel CLI
+npm i -g vercel
 
-# Kiểm tra logs
-docker-compose logs -f
+# Navigate to Frontend
+cd Frontend
 
-# Stop
-docker-compose down
+# Deploy
+vercel --prod
+
+# Follow prompts:
+# - Link to existing project? No
+# - Project name: vam-insurance
+# - Directory: ./
+# - Override settings? Yes
+#   - Build Command: npm run build
+#   - Output Directory: dist
 ```
+
+### Step 3: Update Backend CORS Settings
+
+Now that you have your Vercel URL, update the backend:
+
+1. Go back to **Render Dashboard**
+2. Select your backend service
+3. Go to **"Environment"** tab
+4. Update `FRONTEND_URL` to your Vercel URL:
+   ```
+   https://vam-insurance.vercel.app
+   ```
+5. Click **"Save Changes"**
+6. Backend will automatically redeploy
 
 ---
 
-## 🔐 Cấu hình môi trường
+## ✅ Part 3: Verify Full-Stack Deployment
 
-### Backend Environment Variables
+### Test the Integration
 
-Tạo file `Backend/.env`:
+1. Visit your Vercel app: `https://vam-insurance.vercel.app`
+2. Open browser DevTools (F12) → Network tab
+3. Try these features:
+   - Register a new account
+   - Login
+   - Upload a document
+   - Check disaster map
+   - View insurance packages
 
-```env
-# Database
-DATABASE_URL=sqlite:///./vam_insurance.db
+4. Check API calls in Network tab:
+   - Should go to: `https://vam-insurance-api.onrender.com`
+   - Status should be: `200 OK`
+   - No CORS errors
 
-# Security
-SECRET_KEY=your-super-secret-key-change-this-in-production
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+### Common Issues & Solutions
 
-# API Keys
-GEMINI_API_KEY=your-gemini-api-key
+#### ❌ CORS Error
+**Problem**: `Access-Control-Allow-Origin` error in browser console
 
-# CORS
-ALLOWED_ORIGINS=https://vam-insurance.vercel.app,http://localhost:5173
+**Solution**:
+1. Verify `FRONTEND_URL` in Render matches your Vercel URL exactly
+2. Check Render logs for CORS-related messages
+3. Redeploy backend if needed
 
-# File Storage
-UPLOAD_DIR=./data
-MAX_FILE_SIZE=10485760  # 10MB
-```
+#### ❌ 404 on API Calls
+**Problem**: Frontend gets 404 when calling backend
 
-### Frontend Environment Variables
+**Solution**:
+1. Check `Frontend/.env.production` has correct `VITE_API_URL`
+2. Verify backend is deployed and healthy: `/health` endpoint
+3. Rebuild frontend on Vercel
 
-Tạo file `Frontend/.env.production`:
+#### ❌ 500 Internal Server Error
+**Problem**: Backend returns 500 errors
 
-```env
-VITE_API_URL=https://vam-backend.onrender.com
-```
+**Solution**:
+1. Check Render logs: Dashboard → Your Service → "Logs" tab
+2. Verify all environment variables are set correctly
+3. Check database initialization in logs
 
----
+#### ⚠️ Render Free Tier Spin Down
+**Note**: Render free tier spins down after 15 minutes of inactivity
 
-## ✅ Checklist trước khi deploy
+**Impact**:
+- First request after idle = 30-60 seconds cold start
+- Subsequent requests = fast
 
-### Backend
-- [ ] Update CORS origins với domain thật
-- [ ] Thêm `.env` vào `.gitignore`
-- [ ] Cấu hình database (SQLite → PostgreSQL cho production)
-- [ ] Setup error logging (Sentry)
-- [ ] Enable rate limiting
-- [ ] Backup strategy cho database
-
-### Frontend
-- [ ] Update API URL trong `.env.production`
-- [ ] Optimize images và assets
-- [ ] Enable production build optimization
-- [ ] Setup analytics (Google Analytics)
-- [ ] Test responsive design
-- [ ] PWA configuration (optional)
-
-### Security
-- [ ] Change all default passwords/secrets
-- [ ] Enable HTTPS
-- [ ] Setup firewall rules
-- [ ] Regular backups
-- [ ] Monitor logs
+**Solution**: Upgrade to paid tier ($7/month) for always-on service
 
 ---
 
-## 🔄 CI/CD (Tự động deploy khi push code)
+## 🔧 Maintenance & Updates
 
-### GitHub Actions cho Vercel + Render
+### Update Backend Code
 
-Tạo file `.github/workflows/deploy.yml`:
+```bash
+# Make changes to Backend code
+git add Backend/
+git commit -m "Update backend feature"
+git push origin main
 
-```yaml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to Vercel
-        run: |
-          cd Frontend
-          npm install
-          npm run build
-        # Vercel tự động deploy khi detect push
-
-  deploy-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to Render
-        run: echo "Render auto-deploys from main branch"
+# Render will auto-deploy from GitHub
 ```
+
+### Update Frontend Code
+
+```bash
+# Make changes to Frontend code
+git add Frontend/
+git commit -m "Update frontend feature"
+git push origin main
+
+# Vercel will auto-deploy from GitHub
+```
+
+### Update Environment Variables
+
+**Backend (Render)**:
+1. Dashboard → Service → "Environment"
+2. Update variables
+3. Save (auto-redeploys)
+
+**Frontend (Vercel)**:
+1. Dashboard → Project → "Settings" → "Environment Variables"
+2. Update variables
+3. Redeploy: "Deployments" → "..." → "Redeploy"
 
 ---
 
-## 📊 Monitoring & Maintenance
+## 📊 Monitoring & Logs
 
-### Theo dõi uptime
-- [UptimeRobot](https://uptimerobot.com) - Free monitoring
-- [Pingdom](https://pingdom.com)
+### Backend Logs (Render)
+- Dashboard → Service → "Logs" tab
+- Real-time logs
+- Filter by severity
 
-### Error tracking
-- [Sentry](https://sentry.io) - Free tier
-- [LogRocket](https://logrocket.com)
+### Frontend Logs (Vercel)
+- Dashboard → Project → "Deployments" → Click deployment → "Logs"
+- Build logs
+- Runtime logs
 
 ### Analytics
-- Google Analytics
-- [Plausible](https://plausible.io)
+- Vercel: Built-in analytics (paid feature)
+- Render: Metrics tab (CPU, Memory, Response time)
 
 ---
 
-## 🆘 Troubleshooting
+## 💰 Cost Breakdown
 
-### Backend không start được
-```bash
-# Kiểm tra logs
-pm2 logs vam-backend
+| Service | Free Tier | Paid Tier |
+|---------|-----------|-----------|
+| **Vercel** | ✅ Unlimited deployments<br>100GB bandwidth/month<br>100 builds/day | $20/month<br>1TB bandwidth<br>6000 build minutes |
+| **Render** | ✅ 750 hours/month<br>Spins down after 15min idle<br>512MB RAM | $7/month<br>Always-on<br>512MB RAM |
+| **Total Free** | $0/month | - |
+| **Total Paid** | - | $27/month |
 
-# Restart
-pm2 restart vam-backend
-```
+---
 
-### Frontend 404 errors
-- Kiểm tra `try_files` trong Nginx config
-- Verify build output directory
+## 🎓 Next Steps
 
-### CORS errors
-- Cập nhật `allow_origins` trong `main.py`
-- Check browser console cho error details
+1. ✅ Set up custom domain (optional)
+   - Vercel: Project Settings → Domains
+   - Update `FRONTEND_URL` in Render
+
+2. ✅ Enable HTTPS (automatic on both platforms)
+
+3. ✅ Set up monitoring/alerts
+   - Render: Email notifications
+   - Vercel: Slack/Discord integrations
+
+4. ✅ Database backup (SQLite)
+   - Render: Disk persistence is NOT guaranteed on free tier
+   - Consider upgrading to PostgreSQL for production
 
 ---
 
 ## 📞 Support
 
-Nếu gặp vấn đề, check:
-1. GitHub Issues của project
-2. Documentation của platform (Vercel, Render)
-3. Stack Overflow
+- Vercel Docs: https://vercel.com/docs
+- Render Docs: https://render.com/docs
+- FastAPI Docs: https://fastapi.tiangolo.com/
+- Vite Docs: https://vitejs.dev/
 
 ---
 
-**🎉 Chúc bạn deploy thành công!**
+## 🎉 You're Live!
+
+Your app is now deployed:
+- 🌐 Frontend: `https://vam-insurance.vercel.app`
+- 🔧 Backend: `https://vam-insurance-api.onrender.com`
+- 📚 API Docs: `https://vam-insurance-api.onrender.com/docs`
+
+Happy deploying! 🚀

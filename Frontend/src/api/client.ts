@@ -268,3 +268,33 @@ export const documentApi = {
     return data
   },
 }
+
+// Weather API
+export const weatherApi = {
+  // Get weather by coordinates
+  getWeather: async (lat: number, lon: number): Promise<{
+    temperature: number
+    feels_like: number
+    humidity: number
+    pressure: number
+    condition: string
+    description: string
+    wind_speed: number
+    clouds: number
+    rain_1h: number
+    rain_3h: number
+    visibility: number
+    status: string
+    severity: string
+    marker_color: string
+    fetched_at: string
+  }> => {
+    const response = await fetch(`${API_BASE}/api/weather?lat=${lat}&lon=${lon}`)
+    
+    if (!response.ok) {
+      throw new Error('Failed to get weather data')
+    }
+    
+    return response.json()
+  },
+}
