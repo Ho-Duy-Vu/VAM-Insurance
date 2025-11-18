@@ -4,6 +4,7 @@ AI Service for Document Analysis using Google Gemini
 
 try:
     import google.generativeai as genai
+    from google.generativeai import types
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -244,7 +245,7 @@ if GEMINI_AVAILABLE:
     # Configure the Gemini model
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
-    client = MockGeminiClient()  # Use mock for now during deployment
+    client = genai  # Use real Gemini API
 else:
     client = MockGeminiClient()
 
@@ -713,29 +714,18 @@ async def analyze_auto_document(image_path: str) -> Dict[str, Any]:
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
                 print(f"   📐 Optimized image from {image_path} to {new_size} (original: {max_dimension}px, {file_size:.1f}MB)")
         
-        # Convert PIL Image to bytes
+        # Convert PIL Image to bytes for Gemini
         img_byte_arr = io.BytesIO()
         image.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        img_byte_arr.seek(0)
         
-        # Generate content with Gemini 2.5 Flash Lite
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[
-                types.Content(
-                    role='user',
-                    parts=[
-                        types.Part(text=DOCUMENT_AUTO_ANALYSIS_PROMPT),
-                        types.Part(
-                            inline_data=types.Blob(
-                                data=img_byte_arr,
-                                mime_type='image/jpeg'
-                            )
-                        )
-                    ]
-                )
+        # Generate content with Gemini - simplified API call
+        response = model.generate_content(
+            [
+                DOCUMENT_AUTO_ANALYSIS_PROMPT,
+                Image.open(img_byte_arr)
             ],
-            config=types.GenerateContentConfig(
+            generation_config=genai.GenerationConfig(
                 temperature=0.1,
                 top_p=0.95,
                 top_k=40,
@@ -830,29 +820,18 @@ async def extract_markdown_content(image_path: str) -> str:
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
                 print(f"   📐 Optimized image from {image_path} to {new_size} (original: {max_dimension}px, {file_size:.1f}MB)")
         
-        # Convert PIL Image to bytes
+        # Convert PIL Image to bytes for Gemini
         img_byte_arr = io.BytesIO()
         image.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        img_byte_arr.seek(0)
         
-        # Generate content with Gemini 2.5 Flash Lite
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[
-                types.Content(
-                    role='user',
-                    parts=[
-                        types.Part(text=DOCUMENT_MARKDOWN_PROMPT),
-                        types.Part(
-                            inline_data=types.Blob(
-                                data=img_byte_arr,
-                                mime_type='image/jpeg'
-                            )
-                        )
-                    ]
-                )
+        # Generate content with Gemini - simplified API call
+        response = model.generate_content(
+            [
+                DOCUMENT_MARKDOWN_PROMPT,
+                Image.open(img_byte_arr)
             ],
-            config=types.GenerateContentConfig(
+            generation_config=genai.GenerationConfig(
                 temperature=0.1,
                 top_p=0.95,
                 top_k=40,
@@ -950,10 +929,10 @@ async def extract_person_info(image_path: str) -> Dict[str, Any]:
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
                 print(f"   📐 Optimized image to {new_size}")
         
-        # Convert to bytes
+        # Convert to bytes for Gemini
         img_byte_arr = io.BytesIO()
         image.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        img_byte_arr.seek(0)
         
         # Call Gemini API with retry logic for quota errors
         max_retries = 3
@@ -962,23 +941,12 @@ async def extract_person_info(image_path: str) -> Dict[str, Any]:
         
         for attempt in range(max_retries):
             try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash-lite',
-                    contents=[
-                        types.Content(
-                            role='user',
-                            parts=[
-                                types.Part(text=PERSON_INFO_EXTRACTION_PROMPT),
-                                types.Part(
-                                    inline_data=types.Blob(
-                                        data=img_byte_arr,
-                                        mime_type='image/jpeg'
-                                    )
-                                )
-                            ]
-                        )
+                response = model.generate_content(
+                    [
+                        PERSON_INFO_EXTRACTION_PROMPT,
+                        Image.open(img_byte_arr)
                     ],
-                    config=types.GenerateContentConfig(
+                    generation_config=genai.GenerationConfig(
                         temperature=0.1,
                         top_p=0.95,
                         top_k=40,
@@ -1144,29 +1112,18 @@ async def extract_vehicle_info(image_path: str) -> Dict[str, Any]:
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
                 print(f"   📐 Optimized image to {new_size}")
         
-        # Convert to bytes
+        # Convert to bytes for Gemini
         img_byte_arr = io.BytesIO()
         image.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        img_byte_arr.seek(0)
         
         # Call Gemini API
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[
-                types.Content(
-                    role='user',
-                    parts=[
-                        types.Part(text=VEHICLE_INFO_EXTRACTION_PROMPT),
-                        types.Part(
-                            inline_data=types.Blob(
-                                data=img_byte_arr,
-                                mime_type='image/jpeg'
-                            )
-                        )
-                    ]
-                )
+        response = model.generate_content(
+            [
+                VEHICLE_INFO_EXTRACTION_PROMPT,
+                Image.open(img_byte_arr)
             ],
-            config=types.GenerateContentConfig(
+            generation_config=genai.GenerationConfig(
                 temperature=0.1,
                 top_p=0.95,
                 top_k=40,
@@ -1294,29 +1251,18 @@ async def recommend_insurance_by_address(image_path: str) -> Dict[str, Any]:
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
                 print(f"   📐 Optimized image to {new_size}")
         
-        # Convert to bytes
+        # Convert to bytes for Gemini
         img_byte_arr = io.BytesIO()
         image.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        img_byte_arr.seek(0)
         
         # Call Gemini API
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[
-                types.Content(
-                    role='user',
-                    parts=[
-                        types.Part(text=INSURANCE_RECOMMENDATION_PROMPT),
-                        types.Part(
-                            inline_data=types.Blob(
-                                data=img_byte_arr,
-                                mime_type='image/jpeg'
-                            )
-                        )
-                    ]
-                )
+        response = model.generate_content(
+            [
+                INSURANCE_RECOMMENDATION_PROMPT,
+                Image.open(img_byte_arr)
             ],
-            config=types.GenerateContentConfig(
+            generation_config=genai.GenerationConfig(
                 temperature=0.1,
                 top_p=0.95,
                 top_k=40,
