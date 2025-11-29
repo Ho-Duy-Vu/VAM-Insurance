@@ -5,8 +5,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card'
-import { Button } from '..\/..\/components\/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
 import { 
   FileText, 
   Download, 
@@ -141,10 +141,21 @@ export default function ContractDetailPage() {
   }
 
   const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(parseInt(amount))
+    // If amount already contains VND or formatting, return as-is
+    if (amount && (amount.includes('VNĐ') || amount.includes('VND') || amount.includes('/'))) {
+      return amount
+    }
+    
+    // Otherwise, format as currency
+    try {
+      const numAmount = parseInt(amount.replace(/\D/g, ''))
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(numAmount)
+    } catch {
+      return amount
+    }
   }
 
   const getPackageIcon = (packageType: string) => {
@@ -241,37 +252,50 @@ export default function ContractDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-8 px-4 print:hidden">
-        <div className="container mx-auto">
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-12 px-4 print:hidden overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
+        </div>
+
+        <div className="container mx-auto relative z-10">
           <Button
             onClick={() => navigate('/my-documents')}
             variant="outline"
-            className="mb-4 bg-white/10 border-white/20 text-white hover:bg-white/20"
+            className="mb-6 bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm font-semibold"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại danh sách
           </Button>
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-                <FileText className="w-10 h-10" />
-                Chi tiết hợp đồng bảo hiểm
-              </h1>
-              <p className="text-indigo-100 text-lg">
-                Hợp đồng #{purchase.policy_number || purchase.id}
-              </p>
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl border-4 border-white/40 flex items-center justify-center shadow-2xl">
+                  <FileText className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold mb-2 drop-shadow-lg">
+                    Chi tiết hợp đồng bảo hiểm
+                  </h1>
+                  <p className="text-blue-100 text-lg font-medium">
+                    Hợp đồng #{purchase.policy_number || purchase.id}
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="flex gap-3">
               <Button
                 onClick={handleDownloadContract}
                 disabled={downloading}
-                className="bg-white text-indigo-600 hover:bg-gray-100"
+                className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 font-bold border-0 shadow-xl"
               >
                 {downloading ? (
                   <>
-                    <div className="animate-spin w-4 h-4 mr-2 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                    <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
                     Đang tải...
                   </>
                 ) : (
@@ -283,7 +307,7 @@ export default function ContractDetailPage() {
               </Button>
               <Button
                 onClick={handlePrint}
-                className="bg-white/10 border border-white/20 hover:bg-white/20"
+                className="bg-white/10 border-2 border-white/30 hover:bg-white/20 backdrop-blur-sm text-white font-semibold"
               >
                 <Printer className="w-4 h-4 mr-2" />
                 In hợp đồng
@@ -298,58 +322,60 @@ export default function ContractDetailPage() {
           {/* Main Content - Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Status Card */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+            <Card className="border-2 rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`w-16 h-16 rounded-xl ${
-                      purchase.package_type === 'TNDS' ? 'bg-blue-100 text-blue-700' :
-                      purchase.package_type === 'Sức khỏe' ? 'bg-pink-100 text-pink-700' :
-                      purchase.package_type === 'Thiên tai' ? 'bg-orange-100 text-orange-700' :
-                      'bg-green-100 text-green-700'
-                    } flex items-center justify-center border-2`}>
+                    <div className={`w-20 h-20 rounded-2xl ${
+                      purchase.package_type === 'TNDS' ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' :
+                      purchase.package_type === 'Sức khỏe' ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white' :
+                      purchase.package_type === 'Thiên tai' ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' :
+                      'bg-gradient-to-br from-green-500 to-green-600 text-white'
+                    } flex items-center justify-center border-4 border-white shadow-xl`}>
                       {getPackageIcon(purchase.package_type)}
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold">{purchase.package_name}</h2>
-                      <p className="text-gray-600">{purchase.insurance_company || 'VAM Insurance'}</p>
+                      <h2 className="text-3xl font-bold text-gray-900">{purchase.package_name}</h2>
+                      <p className="text-gray-700 font-semibold text-lg">{purchase.insurance_company || 'VAM Insurance'}</p>
                     </div>
                   </div>
                   {getStatusBadge(purchase.status)}
                 </div>
-              </CardContent>
+              </div>
             </Card>
 
             {/* Package Information */}
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-indigo-600" />
-                  Thông tin gói bảo hiểm
+            <Card className="border-2 rounded-2xl shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-gray-900">Thông tin gói bảo hiểm</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Tên gói bảo hiểm</p>
-                    <p className="text-lg font-semibold">{purchase.package_name}</p>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold">Tên gói bảo hiểm</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.package_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Loại bảo hiểm</p>
-                    <p className="text-lg font-semibold">{purchase.package_type}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold">Loại bảo hiểm</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.package_type}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Công ty bảo hiểm</p>
-                    <p className="text-lg font-semibold">{purchase.insurance_company || 'VAM Insurance'}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold">Công ty bảo hiểm</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.insurance_company || 'VAM Insurance'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Số hợp đồng</p>
-                    <p className="text-lg font-semibold text-indigo-600">{purchase.policy_number || 'Đang cập nhật'}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold">Số hợp đồng</p>
+                    <p className="text-lg font-bold text-indigo-600">{purchase.policy_number || 'Đang cập nhật'}</p>
                   </div>
                   {purchase.coverage_amount && (
-                    <div className="md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Số tiền bảo hiểm</p>
-                      <p className="text-2xl font-bold text-green-600">{formatCurrency(purchase.coverage_amount)}</p>
+                    <div className="md:col-span-2 bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200">
+                      <p className="text-sm text-gray-700 font-semibold mb-2">Số tiền bảo hiểm tối đa</p>
+                      <p className="text-3xl font-bold text-green-700">{formatCurrency(purchase.coverage_amount)}</p>
                     </div>
                   )}
                 </div>
@@ -357,27 +383,29 @@ export default function ContractDetailPage() {
             </Card>
 
             {/* Coverage Period */}
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                  Thời hạn bảo hiểm
+            <Card className="border-2 rounded-2xl shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 border-b-2">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-gray-900">Thời hạn bảo hiểm</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Ngày bắt đầu</p>
-                    <p className="text-lg font-semibold">{purchase.start_date || 'Chưa xác định'}</p>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold">Ngày bắt đầu</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.start_date || 'Chưa xác định'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Ngày kết thúc</p>
-                    <p className="text-lg font-semibold">{purchase.end_date || 'Chưa xác định'}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold">Ngày kết thúc</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.end_date || 'Chưa xác định'}</p>
                   </div>
                   {purchase.payment_frequency && (
-                    <div className="md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Tần suất đóng phí</p>
-                      <p className="text-lg font-semibold">{purchase.payment_frequency}</p>
+                    <div className="md:col-span-2 bg-blue-50 p-4 rounded-xl">
+                      <p className="text-sm text-gray-700 font-semibold mb-1">Tần suất đóng phí</p>
+                      <p className="text-lg font-bold text-blue-700">{purchase.payment_frequency}</p>
                     </div>
                   )}
                 </div>
@@ -385,36 +413,38 @@ export default function ContractDetailPage() {
             </Card>
 
             {/* Customer Information */}
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-purple-600" />
-                  Thông tin người mua bảo hiểm
+            <Card className="border-2 rounded-2xl shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-2">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-gray-900">Thông tin người mua bảo hiểm</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-                      <User className="w-4 h-4" />
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold flex items-center gap-2">
+                      <User className="w-4 h-4 text-purple-600" />
                       Họ và tên
                     </p>
-                    <p className="text-lg font-semibold">{purchase.customer_name}</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.customer_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 font-semibold flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-purple-600" />
                       Số điện thoại
                     </p>
-                    <p className="text-lg font-semibold">{purchase.customer_phone}</p>
+                    <p className="text-lg font-bold text-gray-900">{purchase.customer_phone}</p>
                   </div>
                   {purchase.customer_email && (
-                    <div className="md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
+                    <div className="md:col-span-2 space-y-2">
+                      <p className="text-sm text-gray-600 font-semibold flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-purple-600" />
                         Email
                       </p>
-                      <p className="text-lg font-semibold">{purchase.customer_email}</p>
+                      <p className="text-lg font-bold text-gray-900">{purchase.customer_email}</p>
                     </div>
                   )}
                 </div>
@@ -449,28 +479,32 @@ export default function ContractDetailPage() {
           {/* Sidebar - Right Column */}
           <div className="space-y-6">
             {/* Payment Information */}
-            <Card className="border-2 border-indigo-200">
-              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                  Thông tin thanh toán
+            <Card className="border-4 border-green-200 rounded-2xl shadow-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 text-white border-b-4 border-green-300">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-xl flex items-center justify-center border-2 border-white/40">
+                    <DollarSign className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="drop-shadow-lg">Thông tin thanh toán</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Phí bảo hiểm</p>
-                  <p className="text-3xl font-bold text-indigo-600">{formatCurrency(purchase.premium_amount)}</p>
+              <CardContent className="p-8 space-y-6 bg-gradient-to-br from-green-50 to-emerald-50">
+                <div className="bg-white p-6 rounded-xl border-2 border-green-200 shadow-lg">
+                  <p className="text-sm text-gray-700 font-semibold mb-2">Phí bảo hiểm</p>
+                  <p className="text-4xl font-bold text-green-700">{formatCurrency(purchase.premium_amount)}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Phương thức thanh toán</p>
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-gray-400" />
-                    <p className="text-lg font-semibold">{purchase.payment_method || 'Chưa xác định'}</p>
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-700 font-semibold">Phương thức thanh toán</p>
+                  <div className="flex items-center gap-3 bg-white p-4 rounded-xl border-2 border-gray-200">
+                    <CreditCard className="w-6 h-6 text-green-600" />
+                    <p className="text-lg font-bold text-gray-900">{purchase.payment_method || 'Chưa xác định'}</p>
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">Trạng thái thanh toán</p>
-                  {getPaymentStatusBadge(purchase.payment_status)}
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-700 font-semibold">Trạng thái thanh toán</p>
+                  <div className="bg-white p-4 rounded-xl border-2 border-gray-200">
+                    {getPaymentStatusBadge(purchase.payment_status)}
+                  </div>
                 </div>
               </CardContent>
             </Card>

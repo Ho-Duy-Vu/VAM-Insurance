@@ -1,4 +1,4 @@
-import { Shield, Menu, X, Phone, User, LogIn, LogOut, Settings, FileText } from 'lucide-react'
+import { Shield, Menu, X, Phone, User, LogIn, LogOut, Settings, FileText, BarChart3, GitCompare } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
@@ -76,11 +76,10 @@ export default function Header() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isActive(item.href)
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive(item.href)
                     ? 'bg-trust-50 text-trust-700'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-trust-600'
-                }`}
+                  }`}
               >
                 {item.name}
               </Link>
@@ -96,9 +95,9 @@ export default function Header() {
               <Phone className="w-4 h-4" />
               <span className="font-medium">+84932694273</span>
             </a>
-            
+
             <div className="w-px h-6 bg-gray-300" />
-            
+
             {user ? (
               // User logged in - show dropdown
               <div className="relative">
@@ -113,14 +112,14 @@ export default function Header() {
                   </div>
                   <span className="text-sm font-medium text-gray-700">{user.name || user.email}</span>
                 </button>
-                
+
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[91]">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
-                    
+
                     <Link
                       to="/profile"
                       onClick={() => setUserMenuOpen(false)}
@@ -129,7 +128,7 @@ export default function Header() {
                       <User className="w-4 h-4 mr-3" />
                       Thông tin cá nhân
                     </Link>
-                    
+
                     <Link
                       to="/my-documents"
                       onClick={() => setUserMenuOpen(false)}
@@ -138,7 +137,25 @@ export default function Header() {
                       <FileText className="w-4 h-4 mr-3" />
                       Tài liệu của tôi
                     </Link>
-                    
+
+                    <Link
+                      to="/comparison"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <GitCompare className="w-4 h-4 mr-3" />
+                      So sánh gói
+                    </Link>
+
+                    <Link
+                      to="/risk-dashboard"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <BarChart3 className="w-4 h-4 mr-3" />
+                      Dashboard rủi ro
+                    </Link>
+
                     <Link
                       to="/settings"
                       onClick={() => setUserMenuOpen(false)}
@@ -147,7 +164,7 @@ export default function Header() {
                       <Settings className="w-4 h-4 mr-3" />
                       Cài đặt
                     </Link>
-                    
+
                     <div className="border-t border-gray-100 mt-2 pt-2">
                       <button
                         onClick={handleLogout}
@@ -169,7 +186,7 @@ export default function Header() {
                     Đăng nhập
                   </Button>
                 </Link>
-                
+
                 <Link to="/register">
                   <Button size="sm" className="bg-trust-600 hover:bg-trust-700 text-white">
                     <LogIn className="w-4 h-4 mr-2" />
@@ -206,17 +223,16 @@ export default function Header() {
                   key={item.name}
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                    isActive(item.href)
+                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-all ${isActive(item.href)
                       ? 'bg-trust-50 text-trust-700'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-trust-600'
-                  }`}
+                    }`}
                 >
                   {item.name}
                 </Link>
               ))}
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
               <a
                 href="tel:+84932694273"
@@ -225,7 +241,7 @@ export default function Header() {
                 <Phone className="w-5 h-5" />
                 <span className="font-medium">+84932694273</span>
               </a>
-              
+
               {user ? (
                 // User logged in - mobile menu
                 <>
@@ -233,31 +249,45 @@ export default function Header() {
                     <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
-                  
+
                   <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start text-gray-700">
                       <User className="w-5 h-5 mr-3" />
                       Thông tin cá nhân
                     </Button>
                   </Link>
-                  
+
                   <Link to="/my-documents" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start text-gray-700">
                       <FileText className="w-5 h-5 mr-3" />
                       Tài liệu của tôi
                     </Button>
                   </Link>
-                  
+
+                  <Link to="/comparison" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-gray-700">
+                      <GitCompare className="w-5 h-5 mr-3" />
+                      So sánh gói
+                    </Button>
+                  </Link>
+
+                  <Link to="/risk-dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-gray-700">
+                      <BarChart3 className="w-5 h-5 mr-3" />
+                      Dashboard rủi ro
+                    </Button>
+                  </Link>
+
                   <Link to="/settings" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start text-gray-700">
                       <Settings className="w-5 h-5 mr-3" />
                       Cài đặt
                     </Button>
                   </Link>
-                  
-                  <Button 
+
+                  <Button
                     onClick={handleLogout}
-                    variant="ghost" 
+                    variant="ghost"
                     className="w-full justify-start text-red-600 hover:bg-red-50"
                   >
                     <LogOut className="w-5 h-5 mr-3" />
@@ -273,7 +303,7 @@ export default function Header() {
                       Đăng nhập
                     </Button>
                   </Link>
-                  
+
                   <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full bg-trust-600 hover:bg-trust-700 text-white">
                       <LogIn className="w-5 h-5 mr-3" />

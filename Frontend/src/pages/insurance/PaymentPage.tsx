@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useInsuranceStore } from '..\/..\/store\/insurance';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '..\/..\/components\/ui/card';
-import { Button } from '..\/..\/components\/ui/button';
+import { useInsuranceStore } from '../../store/insurance';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { 
   CreditCard, 
   QrCode, 
@@ -13,7 +13,7 @@ import {
   DollarSign,
   Shield
 } from 'lucide-react';
-import { formatPrice } from '..\/..\/data\/insurancePackages';
+import { formatPrice } from '../../data/insurancePackages';
 
 // Interface for application data with Vietnamese field names
 interface ApplicationFormData {

@@ -5,8 +5,8 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card'
-import { Button } from '..\/..\/components\/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
 import { 
   FileText, 
   CheckCircle, 
@@ -168,20 +168,23 @@ export default function MyDocumentsPage() {
     try {
       setDownloading(true)
       
+      console.log('🔄 Đang tải hợp đồng cho purchase ID:', purchase.id)
+      
       // Gọi API backend để tạo file PDF hợp đồng
-      const response = await fetch(`http://localhost:8000/insurance-purchases/${purchase.id}/download-contract`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/pdf'
-        }
-      })
+      const response = await fetch(`http://localhost:8000/insurance-purchases/${purchase.id}/download-contract`)
+      
+      console.log('📡 Response status:', response.status)
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()))
       
       if (!response.ok) {
-        throw new Error('Không thể tải hợp đồng')
+        const errorText = await response.text()
+        console.error('❌ Backend error:', errorText)
+        throw new Error(`Không thể tải hợp đồng (Status: ${response.status})`)
       }
       
       // Tạo blob từ response
       const blob = await response.blob()
+      console.log('📦 Blob created:', blob.size, 'bytes, type:', blob.type)
       
       // Tạo URL cho file blob
       const url = window.URL.createObjectURL(blob)
@@ -199,11 +202,11 @@ export default function MyDocumentsPage() {
       // Clean up URL
       window.URL.revokeObjectURL(url)
       
-      console.log('✅ Đã tải hợp đồng thành công')
+      console.log('✅ Đã tải hợp đồng thành công:', link.download)
       
     } catch (error) {
       console.error('❌ Lỗi tải hợp đồng:', error)
-      alert('Không thể tải hợp đồng. Vui lòng thử lại sau.')
+      alert(`Không thể tải hợp đồng. Lỗi: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setDownloading(false)
     }
@@ -231,83 +234,105 @@ export default function MyDocumentsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
       
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-2">Hợp đồng bảo hiểm của tôi</h1>
-          <p className="text-indigo-100">Quản lý và theo dõi tất cả hợp đồng bảo hiểm của bạn</p>
+      {/* Hero Section - Modern Design */}
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
+        
+        <div className="relative container mx-auto px-4 py-10">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-4 border-white/30 shadow-2xl">
+              <FileText className="w-10 h-10" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">Hợp đồng bảo hiểm của tôi</h1>
+              <p className="text-blue-50 text-base">📋 Quản lý và theo dõi tất cả hợp đồng bảo hiểm của bạn</p>
+            </div>
+          </div>
         </div>
       </div>
       
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+        {/* Stats Cards - Enhanced */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="shadow-xl border-0 hover:shadow-2xl transition-shadow duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Tổng hợp đồng</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-2">Tổng hợp đồng</p>
                   <p className="text-3xl font-bold text-indigo-600">{purchases.length}</p>
                 </div>
-                <FileText className="w-10 h-10 text-indigo-600 opacity-20" />
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <FileText className="w-7 h-7 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="shadow-xl border-0 hover:shadow-2xl transition-shadow duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Đang hiệu lực</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-2">Đang hiệu lực</p>
                   <p className="text-3xl font-bold text-green-600">
                     {purchases.filter(p => p.status === 'ACTIVE').length}
                   </p>
                 </div>
-                <CheckCircle className="w-10 h-10 text-green-600 opacity-20" />
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <CheckCircle className="w-7 h-7 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="shadow-xl border-0 hover:shadow-2xl transition-shadow duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Chờ xử lý</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-2">Chờ xử lý</p>
                   <p className="text-3xl font-bold text-yellow-600">
                     {purchases.filter(p => p.status === 'PENDING').length}
                   </p>
                 </div>
-                <Clock className="w-10 h-10 text-yellow-600 opacity-20" />
+                <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Clock className="w-7 h-7 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="shadow-xl border-0 hover:shadow-2xl transition-shadow duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Tổng phí</p>
-                  <p className="text-2xl font-bold text-purple-600">
+                  <p className="text-sm font-semibold text-gray-600 mb-2">Tổng phí</p>
+                  <p className="text-2xl font-bold text-blue-600">
                     {formatCurrency(
                       purchases.reduce((sum, p) => sum + parseInt(p.premium_amount), 0).toString()
                     )}
                   </p>
                 </div>
-                <DollarSign className="w-10 h-10 text-purple-600 opacity-20" />
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <DollarSign className="w-7 h-7 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
         
         {/* Purchase List */}
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Danh sách hợp đồng
+        <Card className="shadow-xl border-0">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b-2 border-indigo-100">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-indigo-700 to-blue-700 bg-clip-text text-transparent font-bold">
+                Danh sách hợp đồng
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -335,29 +360,29 @@ export default function MyDocumentsPage() {
                   return (
                     <div
                       key={purchase.id}
-                      className="border rounded-xl p-5 hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-indigo-300"
+                      className="bg-white border-2 border-gray-100 rounded-2xl p-6 hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedPurchase(purchase)}
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-5">
                         {/* Icon */}
-                        <div className={`w-14 h-14 rounded-xl ${getPackageColor(purchase.package_type)} flex items-center justify-center flex-shrink-0 border`}>
+                        <div className={`w-16 h-16 rounded-2xl ${getPackageColor(purchase.package_type)} flex items-center justify-center flex-shrink-0 border-2 shadow-lg`}>
                           {getPackageIcon(purchase.package_type)}
                         </div>
                         
                         {/* Content */}
                         <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-start justify-between mb-3">
                             <div>
-                              <h3 className="font-bold text-lg text-gray-900">{purchase.package_name}</h3>
-                              <p className="text-sm text-gray-600">{purchase.insurance_company || 'VAM Insurance'}</p>
+                              <h3 className="font-bold text-xl text-gray-900 mb-1">{purchase.package_name}</h3>
+                              <p className="text-sm font-medium text-gray-600">{purchase.insurance_company || 'VAM Insurance'}</p>
                             </div>
                             
-                            <div className="text-right">
-                              <p className="text-sm text-gray-500 flex items-center gap-1 justify-end" title="Số tiền bạn đã trả để mua bảo hiểm này">
+                            <div className="text-right bg-green-50 px-4 py-2 rounded-xl border-2 border-green-200">
+                              <p className="text-xs font-semibold text-green-700 flex items-center gap-1 justify-end mb-1" title="Số tiền bạn đã trả để mua bảo hiểm này">
                                 <DollarSign className="w-3 h-3" />
                                 Phí bảo hiểm đã trả
                               </p>
-                              <p className="text-xl font-bold text-green-600">{formatCurrency(purchase.premium_amount)}</p>
+                              <p className="text-xl font-bold text-green-700">{formatCurrency(purchase.premium_amount)}</p>
                             </div>
                           </div>
                           

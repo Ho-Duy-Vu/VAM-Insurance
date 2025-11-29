@@ -2,10 +2,10 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FileText, Image, Loader2, X, CheckCircle2 } from 'lucide-react'
-import { Button } from '..\/..\/components\/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card'
-import { Progress } from '..\/..\/components\/ui/progress'
-import { documentApi } from '..\/..\/api\/client'
+import { Button } from '../../components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Progress } from '../../components/ui/progress'
+import { documentApi } from '../../api/client'
 
 interface UploadedFileInfo {
   file: File

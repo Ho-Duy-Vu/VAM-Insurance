@@ -144,45 +144,50 @@ export default function AIGeoAnalystPanel({ onUserLocationDetected }: AIGeoAnaly
   }
 
   return (
-    <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 sticky top-4">
-      <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 text-white rounded-t-xl py-4">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5" />
+    <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-4">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-b border-blue-700 py-4">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-semibold text-base">AI Geo-Analyst</div>
+              <div className="text-xs text-blue-100 font-normal">
+                Phân tích thông minh địa lý
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="font-bold">AI Geo-Analyst</div>
-            <div className="text-xs text-blue-100 font-normal">Phân tích thông minh</div>
+          
+          <div className="px-2.5 py-1 bg-white/20 rounded-md text-xs font-medium">
+            AI
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-5 space-y-4">
+      <CardContent className="p-6 space-y-5">
         {/* Upload Section */}
         <div>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 font-medium">
-            📤 Upload CCCD/CMND để AI phân tích
-          </p>
-          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl mb-4 border-2 border-blue-200 dark:border-blue-800">
-            <div className="flex items-start gap-2 mb-2">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs">💡</span>
+          <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 p-5 rounded-2xl mb-4 border-2 border-blue-200 dark:border-blue-800 shadow-sm">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                <span className="text-white text-sm">💡</span>
               </div>
-              <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">
-                Lưu ý quan trọng:
+              <p className="text-xs text-blue-800 dark:text-blue-300 font-bold">
+                Hướng dẫn chụp ảnh CCCD:
               </p>
             </div>
-            <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1.5 ml-8 list-none">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 flex-shrink-0">✓</span>
-                <span>Chụp <strong>MẶT SAU</strong> của CCCD (có địa chỉ và quê quán)</span>
+            <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-2 ml-10 list-none">
+              <li className="flex items-start gap-2 bg-white/50 dark:bg-gray-800/50 p-2 rounded-lg">
+                <span className="text-blue-600 flex-shrink-0 font-bold">✓</span>
+                <span>Chụp <strong className="text-blue-900 dark:text-blue-200">MẶT SAU</strong> của CCCD (có địa chỉ và quê quán)</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 flex-shrink-0">✓</span>
-                <span>Ảnh rõ nét, đủ ánh sáng, không bị mờ hoặc chói</span>
+              <li className="flex items-start gap-2 bg-white/50 dark:bg-gray-800/50 p-2 rounded-lg">
+                <span className="text-blue-600 flex-shrink-0 font-bold">✓</span>
+                <span>Ảnh <strong className="text-blue-900 dark:text-blue-200">rõ nét</strong>, đủ ánh sáng, không bị mờ hoặc chói</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 flex-shrink-0">✓</span>
-                <span>CCCD nằm phẳng, không bị cong vênh</span>
+              <li className="flex items-start gap-2 bg-white/50 dark:bg-gray-800/50 p-2 rounded-lg">
+                <span className="text-blue-600 flex-shrink-0 font-bold">✓</span>
+                <span>CCCD nằm <strong className="text-blue-900 dark:text-blue-200">phẳng</strong>, không bị cong vênh</span>
               </li>
             </ul>
           </div>
@@ -197,37 +202,52 @@ export default function AIGeoAnalystPanel({ onUserLocationDetected }: AIGeoAnaly
           />
           <Button
             type="button"
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all py-6 text-base font-semibold rounded-xl"
+            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-2xl transition-all py-7 text-base font-bold rounded-xl relative overflow-hidden group"
             disabled={isAnalyzing}
             onClick={() => document.getElementById('cccd-upload-input')?.click()}
           >
-            <Upload className="w-5 h-5 mr-2" />
-            {isAnalyzing ? '⏳ Đang phân tích...' : '📤 Upload CCCD/CMND'}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            <div className="relative flex items-center justify-center gap-2">
+              <Upload className={`w-5 h-5 ${isAnalyzing ? 'animate-bounce' : ''}`} />
+              {isAnalyzing ? '⏳ Đang phân tích với AI...' : '📤 Bắt đầu phân tích'}
+            </div>
           </Button>
 
           {/* Progress bar */}
           {isAnalyzing && uploadProgress > 0 && (
-            <div className="mt-4 space-y-2 bg-white dark:bg-gray-700 p-4 rounded-xl border-2 border-blue-200 dark:border-blue-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Đang xử lý...
+            <div className="mt-5 space-y-3 bg-gradient-to-br from-white to-blue-50 dark:from-gray-700 dark:to-gray-800 p-5 rounded-2xl border-2 border-blue-300 dark:border-blue-700 shadow-xl">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                  Đang xử lý AI...
                 </span>
-                <span className="text-xs font-bold text-blue-600">
-                  {uploadProgress}%
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {uploadProgress}%
+                  </span>
+                </div>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden shadow-inner">
+              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-4 overflow-hidden shadow-inner">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 transition-all duration-500 rounded-full shadow-lg"
+                  className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 transition-all duration-500 rounded-full shadow-lg relative overflow-hidden"
                   style={{ width: `${uploadProgress}%` }}
-                />
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+                </div>
               </div>
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
-                {uploadProgress < 40 ? '📤 Đang tải lên...' : 
-                 uploadProgress < 70 ? '🔍 Đang trích xuất thông tin...' : 
-                 uploadProgress < 90 ? '🌍 Đang phân tích địa điểm...' : 
-                 '✅ Hoàn tất!'}
-              </p>
+              <div className="bg-white/60 dark:bg-gray-800/60 p-3 rounded-xl">
+                <p className="text-xs text-center text-gray-700 dark:text-gray-300 font-semibold flex items-center justify-center gap-2">
+                  {uploadProgress < 40 ? (
+                    <><span className="text-lg">📤</span> Đang tải lên tài liệu...</>
+                  ) : uploadProgress < 70 ? (
+                    <><span className="text-lg">🔍</span> AI đang trích xuất thông tin...</>
+                  ) : uploadProgress < 90 ? (
+                    <><span className="text-lg">🌍</span> AI đang phân tích địa điểm...</>
+                  ) : (
+                    <><span className="text-lg">✅</span> Phân tích hoàn tất!</>
+                  )}
+                </p>
+              </div>
             </div>
           )}
 
@@ -287,82 +307,122 @@ export default function AIGeoAnalystPanel({ onUserLocationDetected }: AIGeoAnaly
 
         {/* Analysis Result */}
         {analysisResult && (
-          <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base flex items-center gap-2">
-                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-4 h-4 text-white" />
+          <div className="space-y-5 pt-5 border-t-2 border-gradient-to-r from-blue-200 via-indigo-200 to-purple-200 dark:border-gray-700">
+            <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 p-4 rounded-2xl border-2 border-green-300 dark:border-green-700 shadow-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-gray-800 dark:text-gray-200">
+                      Kết quả phân tích
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Phân tích thành công ✓</p>
+                  </div>
                 </div>
-                Kết quả phân tích
-              </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setAnalysisResult(null)
-                  setUploadedFile(null)
-                  setError(null)
-                  setUploadProgress(0)
-                }}
-                className="text-xs border-2 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-              >
-                🔄 Upload lại
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAnalysisResult(null)
+                    setUploadedFile(null)
+                    setError(null)
+                    setUploadProgress(0)
+                  }}
+                  className="text-xs border-2 hover:bg-white hover:shadow-md transition-all font-semibold"
+                >
+                  🔄 Phân tích mới
+                </Button>
+              </div>
             </div>
 
             {/* User Location */}
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border-2 border-blue-200 dark:border-blue-800 space-y-3 shadow-md">
-              <div className="flex items-center justify-between p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
-                  <span>📍</span>
-                  Vị trí của bạn
-                </span>
-                <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{analysisResult.user_province}</span>
+            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 p-5 rounded-2xl border-2 border-blue-300 dark:border-blue-700 space-y-3 shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center shadow-md">
+                  <MapPin className="w-4 h-4 text-white" />
+                </div>
+                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200">Thông tin vị trí</h4>
               </div>
-              <div className="flex items-center justify-between p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
-                  <span>🗺️</span>
-                  Vùng miền
-                </span>
-                <span className="text-sm font-bold text-cyan-700 dark:text-cyan-300">{analysisResult.user_region}</span>
-              </div>
-              <div className="flex items-center justify-between p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
-                  <span>🌦️</span>
-                  Tình hình
-                </span>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{analysisResult.weather_status}</span>
-              </div>
-              <div className="flex items-center justify-between p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
-                  <span>⚠️</span>
-                  Mức rủi ro
-                </span>
-                <span className={`text-sm px-3 py-1.5 rounded-full font-bold shadow-sm ${getRiskColor(analysisResult.risk_level)}`}>
-                  {analysisResult.risk_level}
-                </span>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-2">
+                    <span className="text-base">📍</span>
+                    Tỉnh/Thành phố
+                  </span>
+                  <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{analysisResult.user_province}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-2">
+                    <span className="text-base">🗺️</span>
+                    Vùng miền
+                  </span>
+                  <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{analysisResult.user_region}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-2">
+                    <span className="text-base">🌦️</span>
+                    Tình hình thời tiết
+                  </span>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{analysisResult.weather_status}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-2">
+                    <span className="text-base">⚠️</span>
+                    Mức độ rủi ro
+                  </span>
+                  <span className={`text-sm px-3 py-1.5 rounded-xl font-bold shadow-md ${getRiskColor(analysisResult.risk_level)}`}>
+                    {analysisResult.risk_level}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Recommended Packages */}
-            <div>
-              <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+            <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-rose-900/20 p-5 rounded-2xl border-2 border-purple-300 dark:border-purple-700 shadow-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
                   <TrendingUp className="w-4 h-4 text-white" />
                 </div>
-                Gói bảo hiểm đề xuất
-              </h4>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                    Gói bảo hiểm đề xuất
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Top {analysisResult.recommended_packages.length} gói phù hợp nhất</p>
+                </div>
+              </div>
               <div className="space-y-3">
                 {analysisResult.recommended_packages.slice(0, 3).map((pkg, idx) => (
-                  <div key={idx} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:shadow-lg transition-all hover:border-blue-400">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-sm font-bold flex-1 text-gray-800 dark:text-gray-200">{pkg.package}</span>
-                      <span className="text-base font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-600 px-2.5 py-1 rounded-lg ml-2 shadow-sm">
-                        {pkg.percent}%
-                      </span>
+                  <div key={idx} className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-xl transition-all hover:border-purple-400 hover:-translate-y-0.5 relative overflow-hidden group">
+                    {/* Rank Badge */}
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-lg flex items-center justify-center text-xs font-bold text-gray-900 shadow-md">
+                      {idx + 1}
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2">
+                    
+                    <div className="flex items-start justify-between mb-3 pr-8">
+                      <span className="text-sm font-bold flex-1 text-gray-800 dark:text-gray-200 leading-tight">{pkg.package}</span>
+                    </div>
+                    
+                    {/* Match percentage bar */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Độ phù hợp</span>
+                        <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                          {pkg.percent}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000 shadow-sm"
+                          style={{ width: `${pkg.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                       {pkg.reason}
                     </p>
                   </div>
@@ -391,16 +451,35 @@ export default function AIGeoAnalystPanel({ onUserLocationDetected }: AIGeoAnaly
 
         {/* Info when no analysis */}
         {!analysisResult && !isAnalyzing && !error && (
-          <div className="bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Shield className="w-10 h-10 text-white" />
+          <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl text-center border-2 border-dashed border-blue-300 dark:border-gray-600 overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-400/10 rounded-full blur-2xl" />
+            
+            <div className="relative">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl animate-pulse">
+                <Shield className="w-12 h-12 text-white" />
+              </div>
+              <p className="text-base text-gray-800 dark:text-gray-200 font-bold mb-2">
+                Sẵn sàng phân tích
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed max-w-xs mx-auto">
+                Upload CCCD để AI phân tích <strong className="text-blue-700 dark:text-blue-400">địa chỉ</strong>, xác định <strong className="text-indigo-700 dark:text-indigo-400">vùng miền</strong> và đề xuất <strong className="text-purple-700 dark:text-purple-400">gói bảo hiểm</strong> phù hợp với rủi ro thiên tai
+              </p>
+              
+              {/* Feature badges */}
+              <div className="flex flex-wrap justify-center gap-2 mt-5">
+                <div className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 shadow-sm">
+                  🤖 AI Phân tích
+                </div>
+                <div className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-full text-xs font-semibold text-indigo-700 dark:text-indigo-300 shadow-sm">
+                  ⚡ Nhanh chóng
+                </div>
+                <div className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full text-xs font-semibold text-purple-700 dark:text-purple-300 shadow-sm">
+                  🎯 Chính xác
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-2">
-              Chưa có dữ liệu phân tích
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-              Upload CCCD để AI phân tích địa chỉ, xác định vùng miền và đề xuất gói bảo hiểm phù hợp với rủi ro thiên tai tại khu vực của bạn
-            </p>
           </div>
         )}
       </CardContent>

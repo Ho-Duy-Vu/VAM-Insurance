@@ -8,6 +8,7 @@ import ContactPage from '../pages/general/ContactPage'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
 import ProductsPage from '../pages/insurance/ProductsPage'
+import ComparisonPage from '../pages/insurance/ComparisonPage'
 import { PackageDetailPage } from '../pages/insurance/PackageDetailPage'
 import NaturalDisasterPackageDetailPage from '../pages/insurance/NaturalDisasterPackageDetailPage'
 import { InsuranceApplicationFormPage } from '../pages/insurance/InsuranceApplicationFormPage'
@@ -21,6 +22,7 @@ import { InsuranceUploadPage } from '../pages/documents/InsuranceUploadPage'
 import ProfilePage from '../pages/user/ProfilePage'
 import SettingsPage from '../pages/user/SettingsPage'
 import { DisasterMapPage } from '../pages/disaster/DisasterMapPage'
+import RiskDashboardPage from '../pages/dashboard/RiskDashboardPage'
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +30,7 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       {
-        index: true,  
+        index: true,
         element: <HomePage />,
       },
       {
@@ -46,6 +48,14 @@ export const router = createBrowserRouter([
       {
         path: 'products',
         element: <ProductsPage />,
+      },
+      {
+        path: 'comparison',
+        element: <ComparisonPage />,
+      },
+      {
+        path: 'risk-dashboard',
+        element: <RiskDashboardPage />,
       },
       {
         path: 'about',

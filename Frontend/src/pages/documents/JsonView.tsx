@@ -1,12 +1,12 @@
 import React from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { JsonEditor } from '..\/..\/components\/JsonEditor'
-import { useDocumentStore } from '..\/..\/store\/document'
-import { documentApi } from '..\/..\/api\/client'
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card'
+import { JsonEditor } from '../../components/JsonEditor'
+import { useDocumentStore } from '../../store/document'
+import { documentApi } from '../../api/client'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { FileCode, Loader2 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
-import type { DocumentJsonData } from '..\/..\/api\/types'
+import type { DocumentJsonData } from '../../api/types'
 
 export const JsonView: React.FC = () => {
   const { id } = useParams<{ id: string }>()

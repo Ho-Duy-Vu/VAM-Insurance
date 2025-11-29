@@ -30,11 +30,16 @@ export interface InsurancePackage {
   color: string // for theming
   featured: boolean
   requiredDocuments: string[]
-  // For natural disaster packages
+  // For natural disaster packages AND health packages with disaster support
   detailedBenefits?: {
     propertyDamage?: DetailedBenefitCategory
     emergencySupport?: DetailedBenefitCategory
     additionalServices?: DetailedBenefitCategory
+    // For health insurance
+    medicalCare?: DetailedBenefitCategory
+    maternityAndDental?: DetailedBenefitCategory
+    disasterSupport?: DetailedBenefitCategory
+    preventiveCare?: DetailedBenefitCategory
   }
   exclusions?: string[]
 }

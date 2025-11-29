@@ -102,49 +102,68 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex flex-col">
 
       <main className="flex-1 container mx-auto px-4 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">⚙️ Cài Đặt</h1>
-          <p className="text-gray-600 dark:text-gray-400">Quản lý tài khoản và tùy chỉnh hệ thống của bạn</p>
+        <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-12 rounded-2xl mb-8 overflow-hidden shadow-xl">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+              backgroundSize: '24px 24px'
+            }} />
+          </div>
+          
+          <div className="relative px-8">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border-2 border-white/30">
+                <Globe className="w-7 h-7" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold mb-1">⚙️ Cài Đặt</h1>
+                <p className="text-blue-100">Quản lý tài khoản và tùy chỉnh hệ thống của bạn</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Sidebar Tabs */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
+            <Card className="sticky top-4 shadow-lg border-0">
               <CardContent className="p-4">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {tabs.map((tab) => {
                     const Icon = tab.icon
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${
                           activeTab === tab.id
-                            ? 'bg-blue-600 text-white shadow-lg'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-102'
                         }`}
                       >
                         <Icon className="w-5 h-5" />
                         <span className="font-medium">{tab.name}</span>
-                        <ChevronRight className={`w-4 h-4 ml-auto ${activeTab === tab.id ? 'opacity-100' : 'opacity-0'}`} />
+                        <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
+                          activeTab === tab.id ? 'opacity-100' : 'opacity-0'
+                        }`} />
                       </button>
                     )
                   })}
                 </div>
 
                 {/* Logout Button */}
-                <div className="mt-6 pt-6 border-t">
+                <div className="mt-6 pt-6 border-t-2">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span className="font-medium">Đăng xuất</span>
+                    <span>Đăng xuất</span>
                   </button>
                 </div>
               </CardContent>

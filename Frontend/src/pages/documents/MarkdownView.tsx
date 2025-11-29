@@ -1,7 +1,7 @@
 import React from 'react'
-import { MarkdownRenderer } from '..\/..\/components\/MarkdownRenderer'
-import { useDocumentStore } from '..\/..\/store\/document'
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card'
+import { MarkdownRenderer } from '../../components/MarkdownRenderer'
+import { useDocumentStore } from '../../store/document'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { FileText, Loader2 } from 'lucide-react'
 
 // Component to convert plain text to table format for ID cards and similar documents

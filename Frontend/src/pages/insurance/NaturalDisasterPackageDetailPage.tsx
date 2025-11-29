@@ -16,9 +16,9 @@ import {
   ChevronRight,
   MapPin
 } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '..\/..\/components\/ui/card'
-import { Button } from '..\/..\/components\/ui/button'
-import { getPackageById, formatPrice } from '..\/..\/data\/insurancePackages'
+import { Card, CardContent, CardHeader } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { getPackageById, formatPrice } from '../../data/insurancePackages'
 
 export default function NaturalDisasterPackageDetailPage() {
   const { packageId } = useParams<{ packageId: string }>()
@@ -437,30 +437,34 @@ export default function NaturalDisasterPackageDetailPage() {
         </div>
 
         {/* CTA Section */}
-        <Card className={`mt-8 ${colors.bg} border-2 ${colors.border}`}>
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <Card className="mt-8 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 border-0 shadow-xl overflow-hidden">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex flex-col gap-6">
+              {/* Header */}
+              <div className="text-center md:text-left">
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
                   Bảo vệ tài sản của bạn ngay hôm nay!
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-blue-50 text-base md:text-lg font-medium drop-shadow">
                   Chỉ từ {formatPrice(packageData.price)}/năm - Bảo vệ trọn vẹn, an tâm tuyệt đối
                 </p>
               </div>
-              <div className="flex gap-3">
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                 <Button 
                   size="lg"
                   variant="outline"
                   onClick={() => navigate('/contact')}
+                  className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50 font-semibold shadow-lg transition-all hover:scale-105"
                 >
                   <Phone className="mr-2 w-5 h-5" />
                   Tư vấn miễn phí
                 </Button>
                 <Button 
                   size="lg"
-                  className={`${colors.accent} hover:opacity-90 text-white font-semibold px-8`}
                   onClick={() => navigate(`/natural-disaster/application?package=${packageData.id}`)}
+                  className="bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg transition-all hover:scale-105 px-8"
                 >
                   Đăng ký ngay
                   <ChevronRight className="ml-2 w-5 h-5" />

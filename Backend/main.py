@@ -1996,6 +1996,13 @@ async def download_insurance_contract(purchase_id: int):
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
     from io import BytesIO
     import os
+    from urllib.parse import quote
+    
+    def safe_text(text, default='N/A'):
+        """Safely handle None/empty text for PDF - allows HTML tags"""
+        if text is None or text == '':
+            return default
+        return str(text)
     
     db = get_db()
     
@@ -2021,15 +2028,33 @@ async def download_insurance_contract(purchase_id: int):
         styles = getSampleStyleSheet()
         
         # Try to register Vietnamese font (fallback to default if not available)
+        default_font = 'Helvetica'
+        vietnamese_font_found = False
         try:
-            # Register a Vietnamese-compatible font if available
-            font_path = "C:/Windows/Fonts/times.ttf"  # Times New Roman supports Vietnamese
-            if os.path.exists(font_path):
-                pdfmetrics.registerFont(TTFont('TimesVN', font_path))
-                default_font = 'TimesVN'
-            else:
-                default_font = 'Helvetica'
-        except:
+            # Try multiple Vietnamese-compatible fonts
+            font_paths = [
+                ("C:/Windows/Fonts/arial.ttf", 'ArialVN'),
+                ("C:/Windows/Fonts/arialuni.ttf", 'ArialUniVN'),
+                ("C:/Windows/Fonts/times.ttf", 'TimesVN'),
+                ("C:/Windows/Fonts/verdana.ttf", 'VerdanaVN'),
+            ]
+            
+            for font_path, font_name in font_paths:
+                if os.path.exists(font_path):
+                    try:
+                        pdfmetrics.registerFont(TTFont(font_name, font_path, 'UTF-8'))
+                        default_font = font_name
+                        vietnamese_font_found = True
+                        print(f"✅ Registered Vietnamese font: {font_name}")
+                        break
+                    except Exception as font_error:
+                        print(f"⚠️ Failed to register {font_name}: {font_error}")
+                        continue
+        except Exception as e:
+            print(f"⚠️ Font registration error: {e}")
+        
+        if not vietnamese_font_found:
+            print("⚠️ No Vietnamese font found, using ASCII-safe fallback")
             default_font = 'Helvetica'
         
         # Create professional custom styles
@@ -2092,17 +2117,17 @@ async def download_insurance_contract(purchase_id: int):
         )
         
         # === HEADER SECTION ===
-        story.append(Paragraph("HỢP ĐỒNG BẢO HIỂM", header_style))
-        story.append(Paragraph(f"Số hợp đồng: BH{purchase.policy_number or str(purchase.id).zfill(8)}", subtitle_style))
+        story.append(Paragraph(safe_text("HỢP ĐỒNG BẢO HIỂM"), header_style))
+        story.append(Paragraph(safe_text(f"Số hợp đồng: BH{purchase.policy_number or str(purchase.id).zfill(8)}"), subtitle_style))
         
         # Company header with border
         story.append(Spacer(1, 0.3*inch))
-        story.append(Paragraph("CÔNG TY BẢO HIỂM VAM", company_style))
+        story.append(Paragraph(safe_text("CÔNG TY BẢO HIỂM VAM"), company_style))
         
         # Company details
         company_info = [
-            f"<b>Công ty:</b> {purchase.insurance_company or 'VAM Insurance'}",
-            "<b>Địa chỉ:</b> TP. Hồ Chí Minh, Việt Nam",
+            f"<b>Công ty:</b> {safe_text(purchase.insurance_company or 'VAM Insurance')}",
+            f"<b>Địa chỉ:</b> {safe_text('TP. Hồ Chí Minh, Việt Nam')}",
             "<b>Hotline:</b> 1900 xxxx",
             f"<b>Ngày tạo hợp đồng:</b> {datetime.now().strftime('%d/%m/%Y')}"
         ]
@@ -2113,7 +2138,7 @@ async def download_insurance_contract(purchase_id: int):
         story.append(Spacer(1, 0.4*inch))
         
         # === PACKAGE INFORMATION SECTION ===
-        story.append(Paragraph("I. THÔNG TIN GÓI BẢO HIỂM", section_heading_style))
+        story.append(Paragraph(safe_text("I. THÔNG TIN GÓI BẢO HIỂM"), section_heading_style))
         
         # Create separate styles for different types of information
         label_style = ParagraphStyle(
@@ -2161,13 +2186,13 @@ async def download_insurance_contract(purchase_id: int):
         premium_display = format_currency_for_pdf(purchase.premium_amount)
         
         package_data = [
-            [Paragraph('<b>Tên gói bảo hiểm</b>', label_style), Paragraph(purchase.package_name or 'N/A', value_style)],
-            [Paragraph('<b>Loại bảo hiểm</b>', label_style), Paragraph(purchase.package_type or 'N/A', value_style)],
-            [Paragraph('<b>Số tiền bảo hiểm<br/>(Mức bảo hiểm tối đa)</b>', label_style), Paragraph(f'<b>{coverage_display}</b>', coverage_style)],
-            [Paragraph('<b>Phí bảo hiểm<br/>(Số tiền phải trả)</b>', label_style), Paragraph(f'<b>{premium_display}</b>', premium_style)],
-            [Paragraph('<b>Tần suất thanh toán</b>', label_style), Paragraph(purchase.payment_frequency or 'Hàng năm', value_style)],
-            [Paragraph('<b>Ngày bắt đầu</b>', label_style), Paragraph(format_date_vietnamese(purchase.start_date), value_style)],
-            [Paragraph('<b>Ngày kết thúc</b>', label_style), Paragraph(format_date_vietnamese(purchase.end_date), value_style)],
+            [Paragraph(safe_text('<b>Tên gói bảo hiểm</b>'), label_style), Paragraph(safe_text(purchase.package_name or 'N/A'), value_style)],
+            [Paragraph(safe_text('<b>Loại bảo hiểm</b>'), label_style), Paragraph(safe_text(purchase.package_type or 'N/A'), value_style)],
+            [Paragraph(safe_text('<b>Số tiền bảo hiểm<br/>(Mức bảo hiểm tối đa)</b>'), label_style), Paragraph(safe_text(f'<b>{coverage_display}</b>'), coverage_style)],
+            [Paragraph(safe_text('<b>Phí bảo hiểm<br/>(Số tiền phải trả)</b>'), label_style), Paragraph(safe_text(f'<b>{premium_display}</b>'), premium_style)],
+            [Paragraph(safe_text('<b>Tần suất thanh toán</b>'), label_style), Paragraph(safe_text(purchase.payment_frequency or 'Hàng năm'), value_style)],
+            [Paragraph(safe_text('<b>Ngày bắt đầu</b>'), label_style), Paragraph(safe_text(format_date_vietnamese(purchase.start_date)), value_style)],
+            [Paragraph(safe_text('<b>Ngày kết thúc</b>'), label_style), Paragraph(safe_text(format_date_vietnamese(purchase.end_date)), value_style)],
         ]
         
         package_table = Table(package_data, colWidths=[5*cm, 10*cm])
@@ -2190,22 +2215,22 @@ async def download_insurance_contract(purchase_id: int):
         story.append(Spacer(1, 0.3*inch))
         
         # === CUSTOMER INFORMATION SECTION ===
-        story.append(Paragraph("II. THÔNG TIN KHÁCH HÀNG", section_heading_style))
+        story.append(Paragraph(safe_text("II. THÔNG TIN KHÁCH HÀNG"), section_heading_style))
         
         customer_data = [
-            [Paragraph('<b>Họ và tên</b>', label_style), Paragraph(purchase.customer_name or 'N/A', value_style)],
-            [Paragraph('<b>Số điện thoại</b>', label_style), Paragraph(purchase.customer_phone or 'N/A', value_style)],
-            [Paragraph('<b>Email</b>', label_style), Paragraph(purchase.customer_email or 'Chưa cung cấp', value_style)],
-            [Paragraph('<b>Địa chỉ</b>', label_style), Paragraph(getattr(purchase, 'customer_address', None) or 'Chưa cung cấp', value_style)],
-            [Paragraph('<b>Số CMND/CCCD</b>', label_style), Paragraph(getattr(purchase, 'customer_id_number', None) or 'Chưa cung cấp', value_style)],
+            [Paragraph(safe_text('<b>Họ và tên</b>'), label_style), Paragraph(safe_text(purchase.customer_name or 'N/A'), value_style)],
+            [Paragraph(safe_text('<b>Số điện thoại</b>'), label_style), Paragraph(safe_text(purchase.customer_phone or 'N/A'), value_style)],
+            [Paragraph(safe_text('<b>Email</b>'), label_style), Paragraph(safe_text(purchase.customer_email or 'Chưa cung cấp'), value_style)],
+            [Paragraph(safe_text('<b>Địa chỉ</b>'), label_style), Paragraph(safe_text(getattr(purchase, 'customer_address', None) or 'Chưa cung cấp'), value_style)],
+            [Paragraph(safe_text('<b>Số CMND/CCCD</b>'), label_style), Paragraph(safe_text(getattr(purchase, 'customer_id_number', None) or 'Chưa cung cấp'), value_style)],
         ]
         
         # Add beneficiary info if available
         beneficiary_name = getattr(purchase, 'beneficiary_name', None)
         if beneficiary_name:
             customer_data.extend([
-                [Paragraph('<b>Người thụ hưởng</b>', label_style), Paragraph(beneficiary_name, value_style)],
-                [Paragraph('<b>Mối quan hệ</b>', label_style), Paragraph(getattr(purchase, 'beneficiary_relationship', None) or 'N/A', value_style)],
+                [Paragraph(safe_text('<b>Người thụ hưởng</b>'), label_style), Paragraph(safe_text(beneficiary_name), value_style)],
+                [Paragraph(safe_text('<b>Mối quan hệ</b>'), label_style), Paragraph(safe_text(getattr(purchase, 'beneficiary_relationship', None) or 'N/A'), value_style)],
             ])
         
         customer_table = Table(customer_data, colWidths=[5*cm, 10*cm])
@@ -2392,10 +2417,14 @@ async def download_insurance_contract(purchase_id: int):
         
         # Return as file response
         from fastapi.responses import Response
+        from urllib.parse import quote
         
-        # Clean filename
+        # Clean filename and URL encode for Vietnamese characters
         clean_customer_name = ''.join(c for c in purchase.customer_name if c.isalnum() or c in (' ', '_')).replace(' ', '_')
         filename = f"HopDong_BH{purchase.policy_number or str(purchase.id).zfill(8)}_{clean_customer_name}.pdf"
+        
+        # URL encode filename to handle Vietnamese characters in HTTP headers
+        encoded_filename = quote(filename)
         
         print(f"✅ Generated PDF contract: {filename}")
         
@@ -2403,7 +2432,7 @@ async def download_insurance_contract(purchase_id: int):
             content=pdf_data,
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
+                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
             }
         )
         

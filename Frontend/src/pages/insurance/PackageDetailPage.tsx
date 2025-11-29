@@ -165,23 +165,23 @@ export const PackageDetailPage = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto gap-2">
-            <TabsTrigger value="overview" className="text-xs md:text-sm py-2.5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto gap-2 bg-gray-100 p-1">
+            <TabsTrigger value="overview" className="text-xs md:text-sm py-2.5 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
               <FileText className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Tổng Quan</span>
               <span className="sm:hidden">Tổng Quan</span>
             </TabsTrigger>
-            <TabsTrigger value="benefits" className="text-xs md:text-sm py-2.5">
+            <TabsTrigger value="benefits" className="text-xs md:text-sm py-2.5 data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm">
               <CheckCircle2 className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Quyền Lợi</span>
               <span className="sm:hidden">Quyền Lợi</span>
             </TabsTrigger>
-            <TabsTrigger value="terms" className="text-xs md:text-sm py-2.5">
+            <TabsTrigger value="terms" className="text-xs md:text-sm py-2.5 data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm">
               <Shield className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Điều Khoản</span>
               <span className="sm:hidden">Điều Khoản</span>
             </TabsTrigger>
-            <TabsTrigger value="faq" className="text-xs md:text-sm py-2.5">
+            <TabsTrigger value="faq" className="text-xs md:text-sm py-2.5 data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm">
               <HelpCircle className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Câu Hỏi</span>
               <span className="sm:hidden">Câu Hỏi</span>
@@ -198,16 +198,16 @@ export const PackageDetailPage = () => {
                   </div>
                   <span className="text-base md:text-xl">Giới Thiệu Chung</span>
                 </h2>
-                <div className="prose max-w-none text-gray-700">
-                  <p className="mb-3 md:mb-4 leading-relaxed font-medium text-sm md:text-base">
+                <div className="prose max-w-none">
+                  <p className="mb-3 md:mb-4 leading-relaxed font-medium text-sm md:text-base text-gray-900">
                     {packageData.name} là giải pháp bảo hiểm toàn diện được thiết kế đặc biệt để bảo vệ bạn và gia đình 
                     trước những rủi ro không mong muốn trong cuộc sống.
                   </p>
-                  <p className="mb-3 md:mb-4 leading-relaxed font-medium text-sm md:text-base">
-                    Với quyền lợi bảo hiểm lên đến <strong className="text-gray-900">{packageData.coverage}</strong>, bạn có thể an tâm tuyệt đối 
+                  <p className="mb-3 md:mb-4 leading-relaxed font-medium text-sm md:text-base text-gray-900">
+                    Với quyền lợi bảo hiểm lên đến <strong className="text-blue-600">{packageData.coverage}</strong>, bạn có thể an tâm tuyệt đối 
                     về tài chính khi đối mặt với các tình huống khẩn cấp.
                   </p>
-                  <p className="leading-relaxed font-medium text-sm md:text-base">
+                  <p className="leading-relaxed font-medium text-sm md:text-base text-gray-900">
                     Chương trình được thiết kế phù hợp với mọi lứa tuổi và điều kiện sức khỏe, 
                     đảm bảo mang lại sự bảo vệ tốt nhất cho bạn và những người thân yêu.
                   </p>
@@ -225,9 +225,9 @@ export const PackageDetailPage = () => {
                 </h2>
                 <div className="space-y-2 md:space-y-3">
                   {requiredDocs.map((doc, index) => (
-                    <div key={index} className="flex items-start gap-2 md:gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 font-medium text-sm md:text-base">{doc}</span>
+                    <div key={index} className="flex items-start gap-2 md:gap-3 p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-900 font-medium text-sm md:text-base">{doc}</span>
                     </div>
                   ))}
                 </div>
@@ -249,7 +249,7 @@ export const PackageDetailPage = () => {
                   {packageData.benefits.map((benefit, index) => (
                     <div key={index} className="flex items-start gap-2 md:gap-3 p-3 md:p-4 bg-green-50 rounded-lg border-2 border-green-200">
                       <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 font-medium text-sm md:text-base">{benefit}</span>
+                      <span className="text-gray-900 font-semibold text-sm md:text-base">{benefit}</span>
                     </div>
                   ))}
                 </div>
@@ -264,13 +264,13 @@ export const PackageDetailPage = () => {
                   </div>
                   <span className="text-base md:text-xl">Mức Bồi Thường</span>
                 </h2>
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6 md:p-8 border-2 border-blue-200">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 md:p-8 border-2 border-blue-300">
                   <div className="text-center">
-                    <p className="text-xs md:text-sm text-gray-700 font-semibold mb-2">Mức bồi thường tối đa</p>
+                    <p className="text-xs md:text-sm text-gray-800 font-semibold mb-2">Mức bồi thường tối đa</p>
                     <p className="text-2xl md:text-4xl font-bold text-blue-600 mb-3 md:mb-4">
                       {packageData.coverage}
                     </p>
-                    <p className="text-xs md:text-sm text-gray-700 font-medium">
+                    <p className="text-xs md:text-sm text-gray-800 font-medium">
                       Bồi thường nhanh chóng trong vòng 7-10 ngày làm việc
                     </p>
                   </div>
@@ -289,25 +289,25 @@ export const PackageDetailPage = () => {
                   </div>
                   <span className="text-base md:text-xl">Điều Khoản & Điều Kiện</span>
                 </h2>
-                <div className="prose max-w-none text-gray-700 space-y-4 md:space-y-6">
-                  <div className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="prose max-w-none space-y-4 md:space-y-6">
+                  <div className="p-3 md:p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                     <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">1. Phạm Vi Bảo Hiểm</h3>
-                    <p className="font-medium text-sm md:text-base">
+                    <p className="font-medium text-sm md:text-base text-gray-900">
                       Hợp đồng bảo hiểm có hiệu lực trên toàn lãnh thổ Việt Nam và một số quốc gia có thỏa thuận 
                       với công ty bảo hiểm.
                     </p>
                   </div>
-                  <div className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="p-3 md:p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                     <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">2. Thời Gian Chờ</h3>
-                    <p className="font-medium text-sm md:text-base">
+                    <p className="font-medium text-sm md:text-base text-gray-900">
                       Thời gian chờ bảo hiểm là khoảng thời gian từ khi hợp đồng có hiệu lực đến khi người được 
                       bảo hiểm có thể yêu cầu bồi thường. Thời gian này thường là 30 ngày đối với tai nạn và 
                       90 ngày đối với bệnh tật.
                     </p>
                   </div>
-                  <div className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="p-3 md:p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                     <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">3. Nghĩa Vụ Của Bên Mua Bảo Hiểm</h3>
-                    <ul className="list-disc list-inside space-y-2 font-medium text-sm md:text-base">
+                    <ul className="list-disc list-inside space-y-2 font-medium text-sm md:text-base text-gray-900">
                       <li>Khai báo trung thực, đầy đủ thông tin khi tham gia bảo hiểm</li>
                       <li>Đóng phí bảo hiểm đầy đủ và đúng hạn</li>
                       <li>Thông báo ngay cho công ty bảo hiểm khi có sự kiện bảo hiểm xảy ra</li>
@@ -330,7 +330,7 @@ export const PackageDetailPage = () => {
                   {exclusions.map((exclusion, index) => (
                     <div key={index} className="flex items-start gap-2 md:gap-3 p-3 md:p-4 bg-red-50 rounded-lg border-2 border-red-200">
                       <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 font-medium text-sm md:text-base">{exclusion}</span>
+                      <span className="text-gray-900 font-semibold text-sm md:text-base">{exclusion}</span>
                     </div>
                   ))}
                 </div>
@@ -355,7 +355,7 @@ export const PackageDetailPage = () => {
                         <span className="text-blue-600 font-bold flex-shrink-0">Q{index + 1}.</span>
                         <span>{faq.question}</span>
                       </h3>
-                      <p className="text-gray-700 ml-6 md:ml-8 font-medium leading-relaxed text-sm md:text-base">{faq.answer}</p>
+                      <p className="text-gray-900 ml-6 md:ml-8 font-medium leading-relaxed text-sm md:text-base">{faq.answer}</p>
                     </div>
                   ))}
                 </div>
@@ -365,7 +365,7 @@ export const PackageDetailPage = () => {
             <Card className="bg-white border-2 border-gray-200">
               <CardContent className="p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">Cần Hỗ Trợ Thêm?</h2>
-                <p className="text-gray-700 mb-4 font-medium text-sm md:text-base">
+                <p className="text-gray-900 mb-4 font-medium text-sm md:text-base">
                   Nếu bạn có thắc mắc khác, đừng ngần ngại liên hệ với chúng tôi qua:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
@@ -374,7 +374,7 @@ export const PackageDetailPage = () => {
                       <Phone className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs md:text-sm text-gray-700 font-semibold">Hotline</p>
+                      <p className="text-xs md:text-sm text-gray-800 font-semibold">Hotline</p>
                       <p className="font-bold text-gray-900 text-base md:text-lg">1900 xxxx</p>
                     </div>
                   </div>
@@ -383,7 +383,7 @@ export const PackageDetailPage = () => {
                       <Mail className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs md:text-sm text-gray-700 font-semibold">Email</p>
+                      <p className="text-xs md:text-sm text-gray-800 font-semibold">Email</p>
                       <p className="font-bold text-gray-900 text-base md:text-lg truncate">support@insurance.vn</p>
                     </div>
                   </div>
@@ -406,7 +406,7 @@ export const PackageDetailPage = () => {
               <Button
                 onClick={handleBuyNow}
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 font-bold px-6 md:px-8 py-5 md:py-6 text-base md:text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 w-full md:w-auto"
+                className="bg-blue-600 text-white hover:bg-blue-700 font-bold px-6 md:px-8 py-5 md:py-6 text-base md:text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 w-full md:w-auto"
               >
                 <Shield className="w-5 h-5 mr-2" />
                 Mua Ngay

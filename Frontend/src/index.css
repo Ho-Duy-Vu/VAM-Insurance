@@ -118,3 +118,326 @@ body {
   }
 }
 
+/* Shimmer animation for upload progress */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Smooth fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ============================================ */
+/* FLOOD INSURANCE THEME - WATER ANIMATIONS */
+/* ============================================ */
+
+/* Rain drop animation */
+@keyframes rainFall {
+  0% {
+    transform: translateY(-100vh) translateX(0);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(100vh) translateX(10px);
+    opacity: 0;
+  }
+}
+
+.rain-drop {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.5));
+  animation: rainFall linear infinite;
+  pointer-events: none;
+}
+
+/* Water wave animation */
+@keyframes wave {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+@keyframes wave2 {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-15px);
+  }
+}
+
+@keyframes wave3 {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+.wave-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  animation: wave 6s ease-in-out infinite;
+}
+
+.wave:nth-child(2) {
+  animation: wave2 8s ease-in-out infinite;
+  opacity: 0.5;
+}
+
+.wave:nth-child(3) {
+  animation: wave3 10s ease-in-out infinite;
+  opacity: 0.3;
+}
+
+/* Ripple effect animation */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
+  animation: ripple 2s ease-out infinite;
+  pointer-events: none;
+}
+
+/* Float animation for decorative elements */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+
+  33% {
+    transform: translateY(-15px) translateX(10px);
+  }
+
+  66% {
+    transform: translateY(-5px) translateX(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Glassmorphism effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.glass-card-dark {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Water droplet effect on hover */
+@keyframes droplet {
+  0% {
+    transform: scale(0);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.water-hover:hover::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  animation: droplet 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* Cascade entrance animation */
+@keyframes cascadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cascade-item {
+  animation: cascadeIn 0.6s ease-out backwards;
+}
+
+.cascade-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.cascade-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.cascade-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.cascade-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.cascade-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.cascade-item:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+.cascade-item:nth-child(7) {
+  animation-delay: 0.7s;
+}
+
+.cascade-item:nth-child(8) {
+  animation-delay: 0.8s;
+}
+
+/* Shimmer effect for water reflection */
+@keyframes waterShimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.water-shimmer {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(59, 130, 246, 0.1) 50%,
+      transparent 100%);
+  background-size: 200% 100%;
+  animation: waterShimmer 3s ease-in-out infinite;
+}
+
+/* Bubble animation */
+@keyframes bubble {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(-100vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(59, 130, 246, 0.2));
+  animation: bubble linear infinite;
+  pointer-events: none;
+}
+
+/* Storm cloud effect */
+@keyframes cloudDrift {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100vw);
+  }
+}
+
+.storm-cloud {
+  position: absolute;
+  width: 200px;
+  height: 60px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 100px;
+  filter: blur(20px);
+  animation: cloudDrift 30s linear infinite;
+  pointer-events: none;
+}

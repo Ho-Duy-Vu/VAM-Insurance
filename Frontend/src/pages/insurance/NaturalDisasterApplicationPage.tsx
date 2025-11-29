@@ -15,12 +15,12 @@ import {
   Camera,
   X
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '..\/..\/components\/ui/card'
-import { Button } from '..\/..\/components\/ui/button'
-import { useInsuranceStore } from '..\/..\/store\/insurance'
-import { getPackageById, formatPrice } from '..\/..\/data\/insurancePackages'
-import type { NaturalDisasterInsuranceApplication } from '..\/..\/types\/insurance'
-import { documentApi } from '..\/..\/api\/client'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { useInsuranceStore } from '../../store/insurance'
+import { getPackageById, formatPrice } from '../../data/insurancePackages'
+import type { NaturalDisasterInsuranceApplication } from '../../types/insurance'
+import { documentApi } from '../../api/client'
 
 export default function NaturalDisasterApplicationPage() {
   const navigate = useNavigate()
@@ -332,96 +332,164 @@ export default function NaturalDisasterApplicationPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-cyan-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-cyan-950/20">
       
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
+      <main className="container mx-auto px-4 py-8 max-w-5xl">
+        {/* Header with Hero Design */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mb-4"
+            className="mb-6 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all"
           >
             <ArrowLeft className="mr-2 w-4 h-4" />
             Quay lại
           </Button>
           
-          <Card className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">Đơn Đăng Ký Bảo Hiểm Thiên Tai</h1>
-                  <p className="text-blue-100">
-                    Gói: {packageData.name} - {formatPrice(packageData.price)}/{packageData.period}
+          {/* Hero Header */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 p-8 shadow-2xl mb-8">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                backgroundSize: '32px 32px'
+              }} />
+            </div>
+            
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-4">
+                    <Shield className="w-4 h-4" />
+                    <span className="text-sm font-medium">Bảo hiểm thiên tai</span>
+                  </div>
+                  <h1 className="text-4xl font-bold mb-3 text-white drop-shadow-lg">
+                    Đơn Đăng Ký Bảo Hiểm Thiên Tai
+                  </h1>
+                  <p className="text-blue-50 text-lg max-w-2xl">
+                    Hoàn tất thông tin dưới đây để hoàn thiện hồ sơ đăng ký bảo hiểm của bạn
                   </p>
                 </div>
-                <Shield className="w-16 h-16 opacity-80" />
+                <div className="hidden md:block">
+                  <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-xl">
+                    <Shield className="w-12 h-12 text-white" />
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              
+              {/* Package Info Card */}
+              <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-100 mb-1">Gói đã chọn</p>
+                    <h3 className="text-xl font-bold text-white">{packageData.name}</h3>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-blue-100 mb-1">Phí bảo hiểm</p>
+                    <p className="text-2xl font-bold text-white">{formatPrice(packageData.price)}</p>
+                    <p className="text-xs text-blue-100">/{packageData.period}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {sections.map((section, idx) => {
-              const Icon = section.icon
-              const isActive = idx === currentSection
-              const isCompleted = idx < currentSection
-              
-              return (
-                <React.Fragment key={section.id}>
-                  <div className="flex flex-col items-center flex-1">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all ${
-                        isActive
-                          ? 'bg-blue-600 text-white scale-110 shadow-lg'
-                          : isCompleted
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
-                      }`}
-                    >
-                      {isCompleted ? <CheckCircle className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
+        {/* Enhanced Progress Steps */}
+        <div className="mb-10">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              {sections.map((section, idx) => {
+                const Icon = section.icon
+                const isActive = idx === currentSection
+                const isCompleted = idx < currentSection
+                
+                return (
+                  <React.Fragment key={section.id}>
+                    <div className="flex flex-col items-center flex-1">
+                      <div
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center font-semibold transition-all duration-300 ${
+                          isActive
+                            ? 'bg-gradient-to-br from-blue-600 to-cyan-600 text-white scale-110 shadow-xl shadow-blue-500/50'
+                            : isCompleted
+                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-400'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="w-7 h-7" />
+                        ) : (
+                          <Icon className={`w-7 h-7 ${isActive ? 'animate-pulse' : ''}`} />
+                        )}
+                      </div>
+                      <p className={`mt-3 text-sm font-semibold text-center transition-colors ${
+                        isActive 
+                          ? 'text-blue-600 dark:text-blue-400' 
+                          : isCompleted 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-gray-500'
+                      }`}>
+                        {section.title}
+                      </p>
+                      {isActive && (
+                        <div className="mt-2 w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
+                      )}
                     </div>
-                    <p className={`mt-2 text-xs font-medium text-center ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500'}`}>
-                      {section.title}
-                    </p>
-                  </div>
-                  {idx < sections.length - 1 && (
-                    <div className={`flex-1 h-1 mx-2 transition-all ${isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`} />
-                  )}
-                </React.Fragment>
-              )
-            })}
+                    {idx < sections.length - 1 && (
+                      <div className="flex-1 h-1.5 mx-3 rounded-full relative overflow-hidden bg-gray-200 dark:bg-gray-700">
+                        <div 
+                          className={`absolute inset-0 transition-all duration-500 ${
+                            isCompleted 
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 w-full' 
+                              : 'w-0'
+                          }`} 
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </div>
           </div>
         </div>
 
         {/* Form Sections */}
         <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
           {currentSection === 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-6 h-6 text-blue-600" />
-                  Thông Tin Chủ Tài Sản
+            <div className="animate-fadeIn">
+            <Card className="shadow-xl border-0 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-b">
+                <CardTitle className="flex items-center gap-3 text-2xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <span>Thông Tin Chủ Tài Sản</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* AI Document Upload Section */}
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 p-6 rounded-lg border-2 border-dashed border-blue-300">
-                  <div className="flex items-start gap-4">
+              <CardContent className="space-y-8 p-8">
+                {/* AI Document Upload Section - Enhanced */}
+                <div className="relative bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 dark:from-blue-950/30 dark:via-cyan-950/30 dark:to-blue-950/30 p-8 rounded-2xl border-2 border-dashed border-blue-300 dark:border-blue-700 overflow-hidden">
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full -mr-16 -mt-16" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan-400/10 rounded-full -ml-12 -mb-12" />
+                  
+                  <div className="relative z-10 flex items-start gap-6">
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                        <Upload className="w-6 h-6 text-white" />
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30 animate-pulse">
+                        <Upload className="w-8 h-8 text-white" />
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                        🤖 Upload Tài Liệu - AI Tự Động Điền
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Tải lên CCCD/CMND để hệ thống AI tự động trích xuất và điền thông tin vào form
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-xl font-bold">🤖 AI Tự Động Điền Thông Tin</h3>
+                        <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-semibold rounded-full shadow-lg">
+                          Khuyên dùng
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                        Upload CCCD/CMND của bạn và để AI làm phần còn lại! Hệ thống sẽ tự động trích xuất 
+                        và điền tất cả thông tin vào form trong vài giây.
                       </p>
                       
-                      <div className="space-y-4">
+                      <div className="space-y-5">
                         <div>
                           <input
                             type="file"
@@ -433,24 +501,34 @@ export default function NaturalDisasterApplicationPage() {
                           />
                           <label
                             htmlFor="document-upload"
-                            className={`inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer ${
-                              isExtracting ? 'opacity-50 cursor-not-allowed' : ''
+                            className={`group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 cursor-pointer overflow-hidden ${
+                              isExtracting ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'
                             }`}
                           >
-                            <Upload className="w-5 h-5" />
-                            {isExtracting ? 'Đang xử lý...' : 'Chọn tài liệu (CCCD/CMND/PDF)'}
+                            {/* Shimmer Effect */}
+                            {!isExtracting && (
+                              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                            )}
+                            
+                            <Upload className={`w-5 h-5 relative z-10 ${isExtracting ? 'animate-bounce' : ''}`} />
+                            <span className="relative z-10 font-semibold">
+                              {isExtracting ? 'Đang xử lý...' : 'Chọn tài liệu (CCCD/CMND/PDF)'}
+                            </span>
                           </label>
                         </div>
 
                         {uploadProgress > 0 && uploadProgress < 100 && (
-                          <div className="space-y-2">
+                          <div className="space-y-3 animate-fadeIn">
                             <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-600 dark:text-gray-400">Đang xử lý...</span>
-                              <span className="font-medium text-blue-600">{uploadProgress}%</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                                <span className="font-medium text-gray-700 dark:text-gray-300">Đang xử lý tài liệu...</span>
+                              </div>
+                              <span className="font-bold text-blue-600">{uploadProgress}%</span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
                               <div
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 bg-[length:200%_100%] animate-shimmer transition-all duration-300 rounded-full shadow-lg"
                                 style={{ width: `${uploadProgress}%` }}
                               />
                             </div>
@@ -458,33 +536,41 @@ export default function NaturalDisasterApplicationPage() {
                         )}
 
                         {extractionStatus && (
-                          <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                          <div className={`flex items-center gap-3 p-4 rounded-xl border-2 animate-fadeIn ${
                             extractionStatus.includes('✅') 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                              ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' 
                               : extractionStatus.includes('❌')
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                              ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
+                              : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
                           }`}>
                             {extractionStatus.includes('Đang') && (
-                              <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                              <div className="flex gap-1">
+                                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                              </div>
                             )}
-                            <span className="text-sm font-medium">{extractionStatus}</span>
+                            <span className="font-semibold flex-1">{extractionStatus}</span>
                           </div>
                         )}
 
                         {uploadedDocuments.length > 0 && (
-                          <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-green-200 dark:border-green-800 shadow-lg animate-fadeIn">
+                            <div className="flex-shrink-0">
+                              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <CheckCircle className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{uploadedDocuments[0].name}</p>
-                              <p className="text-xs text-gray-500">
-                                {(uploadedDocuments[0].size / 1024).toFixed(2)} KB
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">{uploadedDocuments[0].name}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {(uploadedDocuments[0].size / 1024).toFixed(2)} KB • Đã xử lý thành công
                               </p>
                             </div>
                             <button
                               type="button"
                               onClick={() => removeDocument(0)}
-                              className="text-red-500 hover:text-red-700 flex-shrink-0"
+                              className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             >
                               <X className="w-5 h-5" />
                             </button>
@@ -492,165 +578,209 @@ export default function NaturalDisasterApplicationPage() {
                         )}
                       </div>
 
-                      <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <p className="text-xs text-yellow-800 dark:text-yellow-400">
-                          💡 <strong>Mẹo:</strong> Chụp ảnh rõ nét, đủ sáng, không bị mờ để AI trích xuất chính xác nhất. 
-                          Hỗ trợ: JPG, PNG, PDF (tối đa 10MB)
-                        </p>
+                      <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-xl border-l-4 border-yellow-400">
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 text-2xl">💡</div>
+                          <div>
+                            <p className="font-semibold text-yellow-900 dark:text-yellow-400 mb-2">Mẹo để AI trích xuất chính xác:</p>
+                            <ul className="text-sm text-yellow-800 dark:text-yellow-500 space-y-1">
+                              <li>✓ Chụp ảnh rõ nét, đủ sáng, không bị mờ hoặc lóa</li>
+                              <li>✓ Đảm bảo toàn bộ tài liệu nằm trong khung hình</li>
+                              <li>✓ Hỗ trợ: JPG, PNG, PDF (tối đa 10MB)</li>
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t pt-6" />
-
-                {/* Personal Info */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Họ và tên <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.chu_tai_san.thong_tin_ca_nhan.ho_ten}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        chu_tai_san: {
-                          ...prev.chu_tai_san,
-                          thong_tin_ca_nhan: {
-                            ...prev.chu_tai_san.thong_tin_ca_nhan,
-                            ho_ten: e.target.value
-                          }
-                        }
-                      }))}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 ${
-                        errors.ho_ten ? 'border-red-500' : ''
-                      }`}
-                      placeholder="Nguyễn Văn A"
-                    />
-                    {errors.ho_ten && <p className="text-red-500 text-xs mt-1">{errors.ho_ten}</p>}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t-2 border-gray-200 dark:border-gray-700" />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Ngày sinh</label>
-                    <input
-                      type="date"
-                      value={formData.chu_tai_san.thong_tin_ca_nhan.ngay_sinh}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        chu_tai_san: {
-                          ...prev.chu_tai_san,
-                          thong_tin_ca_nhan: {
-                            ...prev.chu_tai_san.thong_tin_ca_nhan,
-                            ngay_sinh: e.target.value
-                          }
-                        }
-                      }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Giới tính</label>
-                    <select
-                      value={formData.chu_tai_san.thong_tin_ca_nhan.gioi_tinh}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        chu_tai_san: {
-                          ...prev.chu_tai_san,
-                          thong_tin_ca_nhan: {
-                            ...prev.chu_tai_san.thong_tin_ca_nhan,
-                            gioi_tinh: e.target.value as 'Nam' | 'Nu' | 'Khac'
-                          }
-                        }
-                      }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-                    >
-                      <option value="Nam">Nam</option>
-                      <option value="Nu">Nữ</option>
-                      <option value="Khac">Khác</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Số CCCD/CMND <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.chu_tai_san.thong_tin_ca_nhan.giay_to.so}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        chu_tai_san: {
-                          ...prev.chu_tai_san,
-                          thong_tin_ca_nhan: {
-                            ...prev.chu_tai_san.thong_tin_ca_nhan,
-                            giay_to: {
-                              ...prev.chu_tai_san.thong_tin_ca_nhan.giay_to,
-                              so: e.target.value
-                            }
-                          }
-                        }
-                      }))}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 ${
-                        errors.so_giay_to ? 'border-red-500' : ''
-                      }`}
-                      placeholder="001234567890"
-                    />
-                    {errors.so_giay_to && <p className="text-red-500 text-xs mt-1">{errors.so_giay_to}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Nghề nghiệp</label>
-                    <input
-                      type="text"
-                      value={formData.chu_tai_san.thong_tin_ca_nhan.nghe_nghiep}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        chu_tai_san: {
-                          ...prev.chu_tai_san,
-                          thong_tin_ca_nhan: {
-                            ...prev.chu_tai_san.thong_tin_ca_nhan,
-                            nghe_nghiep: e.target.value
-                          }
-                        }
-                      }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-                      placeholder="Kỹ sư"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Nơi làm việc</label>
-                    <input
-                      type="text"
-                      value={formData.chu_tai_san.thong_tin_ca_nhan.noi_lam_viec}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        chu_tai_san: {
-                          ...prev.chu_tai_san,
-                          thong_tin_ca_nhan: {
-                            ...prev.chu_tai_san.thong_tin_ca_nhan,
-                            noi_lam_viec: e.target.value
-                          }
-                        }
-                      }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-                      placeholder="Công ty ABC"
-                    />
+                  <div className="relative flex justify-center">
+                    <span className="bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-500 rounded-full shadow-sm">
+                      Hoặc nhập thủ công
+                    </span>
                   </div>
                 </div>
 
-                {/* Contact Info */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-blue-600" />
+                {/* Personal Info - Enhanced */}
+                <div>
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <User className="w-4 h-4 text-blue-600" />
+                    </div>
+                    Thông tin cá nhân
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Họ và tên <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.chu_tai_san.thong_tin_ca_nhan.ho_ten}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          chu_tai_san: {
+                            ...prev.chu_tai_san,
+                            thong_tin_ca_nhan: {
+                              ...prev.chu_tai_san.thong_tin_ca_nhan,
+                              ho_ten: e.target.value
+                            }
+                          }
+                        }))}
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all ${
+                          errors.ho_ten ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 group-hover:border-blue-300'
+                        }`}
+                        placeholder="Nguyễn Văn A"
+                      />
+                      {errors.ho_ten && (
+                        <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {errors.ho_ten}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Ngày sinh
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.chu_tai_san.thong_tin_ca_nhan.ngay_sinh}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          chu_tai_san: {
+                            ...prev.chu_tai_san,
+                            thong_tin_ca_nhan: {
+                              ...prev.chu_tai_san.thong_tin_ca_nhan,
+                              ngay_sinh: e.target.value
+                            }
+                          }
+                        }))}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
+                      />
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Giới tính
+                      </label>
+                      <select
+                        value={formData.chu_tai_san.thong_tin_ca_nhan.gioi_tinh}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          chu_tai_san: {
+                            ...prev.chu_tai_san,
+                            thong_tin_ca_nhan: {
+                              ...prev.chu_tai_san.thong_tin_ca_nhan,
+                              gioi_tinh: e.target.value as 'Nam' | 'Nu' | 'Khac'
+                            }
+                          }
+                        }))}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
+                      >
+                        <option value="Nam">Nam</option>
+                        <option value="Nu">Nữ</option>
+                        <option value="Khac">Khác</option>
+                      </select>
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Số CCCD/CMND <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.chu_tai_san.thong_tin_ca_nhan.giay_to.so}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          chu_tai_san: {
+                            ...prev.chu_tai_san,
+                            thong_tin_ca_nhan: {
+                              ...prev.chu_tai_san.thong_tin_ca_nhan,
+                              giay_to: {
+                                ...prev.chu_tai_san.thong_tin_ca_nhan.giay_to,
+                                so: e.target.value
+                              }
+                            }
+                          }
+                        }))}
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all ${
+                          errors.so_giay_to ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 group-hover:border-blue-300'
+                        }`}
+                        placeholder="001234567890"
+                      />
+                      {errors.so_giay_to && (
+                        <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {errors.so_giay_to}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Nghề nghiệp
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.chu_tai_san.thong_tin_ca_nhan.nghe_nghiep}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          chu_tai_san: {
+                            ...prev.chu_tai_san,
+                            thong_tin_ca_nhan: {
+                              ...prev.chu_tai_san.thong_tin_ca_nhan,
+                              nghe_nghiep: e.target.value
+                            }
+                          }
+                        }))}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
+                        placeholder="Kỹ sư"
+                      />
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Nơi làm việc
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.chu_tai_san.thong_tin_ca_nhan.noi_lam_viec}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          chu_tai_san: {
+                            ...prev.chu_tai_san,
+                            thong_tin_ca_nhan: {
+                              ...prev.chu_tai_san.thong_tin_ca_nhan,
+                              noi_lam_viec: e.target.value
+                            }
+                          }
+                        }))}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
+                        placeholder="Công ty ABC"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Info - Enhanced */}
+                <div>
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                    </div>
                     Thông Tin Liên Hệ
                   </h3>
                   
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-2">Địa chỉ thường trú</label>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="md:col-span-2 group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Địa chỉ thường trú
+                      </label>
                       <input
                         type="text"
                         value={formData.chu_tai_san.thong_tin_lien_he.dia_chi_thuong_tru}
@@ -664,13 +794,15 @@ export default function NaturalDisasterApplicationPage() {
                             }
                           }
                         }))}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                         placeholder="123 Đường ABC, Quận 1, TP.HCM"
                       />
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-2">Địa chỉ liên lạc</label>
+                    <div className="md:col-span-2 group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Địa chỉ liên lạc
+                      </label>
                       <input
                         type="text"
                         value={formData.chu_tai_san.thong_tin_lien_he.dia_chi_lien_lac}
@@ -684,13 +816,13 @@ export default function NaturalDisasterApplicationPage() {
                             }
                           }
                         }))}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                         placeholder="Để trống nếu trùng với địa chỉ thường trú"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                         Số điện thoại <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -706,16 +838,20 @@ export default function NaturalDisasterApplicationPage() {
                             }
                           }
                         }))}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 ${
-                          errors.sdt ? 'border-red-500' : ''
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all ${
+                          errors.sdt ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 group-hover:border-blue-300'
                         }`}
                         placeholder="0912345678"
                       />
-                      {errors.sdt && <p className="text-red-500 text-xs mt-1">{errors.sdt}</p>}
+                      {errors.sdt && (
+                        <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {errors.sdt}
+                        </p>
+                      )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                         Email <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -731,31 +867,41 @@ export default function NaturalDisasterApplicationPage() {
                             }
                           }
                         }))}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 ${
-                          errors.email ? 'border-red-500' : ''
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all ${
+                          errors.email ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 group-hover:border-blue-300'
                         }`}
                         placeholder="example@email.com"
                       />
-                      {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                      {errors.email && (
+                        <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {errors.email}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+            </div>
           )}
 
           {currentSection === 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="w-6 h-6 text-blue-600" />
-                  Thông Tin Tài Sản Cần Bảo Hiểm
+            <div className="animate-fadeIn">
+            <Card className="shadow-xl border-0 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-b">
+                <CardTitle className="flex items-center gap-3 text-2xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Home className="w-6 h-6 text-white" />
+                  </div>
+                  <span>Thông Tin Tài Sản Cần Bảo Hiểm</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Loại tài sản</label>
+              <CardContent className="space-y-8 p-8">
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Loại tài sản
+                    </label>
                     <select
                       value={formData.thong_tin_tai_san.loai_tai_san}
                       onChange={(e) => setFormData(prev => ({
@@ -765,17 +911,17 @@ export default function NaturalDisasterApplicationPage() {
                           loai_tai_san: e.target.value as 'Nha_o' | 'Can_ho' | 'Phuong_tien' | 'Hang_hoa'
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                     >
-                      <option value="Nha_o">Nhà ở</option>
-                      <option value="Can_ho">Căn hộ</option>
-                      <option value="Phuong_tien">Phương tiện</option>
-                      <option value="Hang_hoa">Hàng hóa</option>
+                      <option value="Nha_o">🏠 Nhà ở</option>
+                      <option value="Can_ho">🏢 Căn hộ</option>
+                      <option value="Phuong_tien">🚗 Phương tiện</option>
+                      <option value="Hang_hoa">📦 Hàng hóa</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                       Giá trị ước tính (VNĐ) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -788,16 +934,20 @@ export default function NaturalDisasterApplicationPage() {
                           gia_tri_uoc_tinh: e.target.value
                         }
                       }))}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 ${
-                        errors.gia_tri ? 'border-red-500' : ''
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all ${
+                        errors.gia_tri ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 group-hover:border-blue-300'
                       }`}
                       placeholder="500000000"
                     />
-                    {errors.gia_tri && <p className="text-red-500 text-xs mt-1">{errors.gia_tri}</p>}
+                    {errors.gia_tri && (
+                      <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {errors.gia_tri}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium mb-2">
+                  <div className="md:col-span-2 group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                       Địa chỉ tài sản <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -810,16 +960,22 @@ export default function NaturalDisasterApplicationPage() {
                           dia_chi_tai_san: e.target.value
                         }
                       }))}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 ${
-                        errors.dia_chi_tai_san ? 'border-red-500' : ''
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all ${
+                        errors.dia_chi_tai_san ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 group-hover:border-blue-300'
                       }`}
                       placeholder="456 Đường XYZ, Quận 2, TP.HCM"
                     />
-                    {errors.dia_chi_tai_san && <p className="text-red-500 text-xs mt-1">{errors.dia_chi_tai_san}</p>}
+                    {errors.dia_chi_tai_san && (
+                      <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {errors.dia_chi_tai_san}
+                      </p>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Diện tích (m²)</label>
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Diện tích (m²)
+                    </label>
                     <input
                       type="number"
                       value={formData.thong_tin_tai_san.dien_tich}
@@ -830,13 +986,15 @@ export default function NaturalDisasterApplicationPage() {
                           dien_tich: e.target.value
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                       placeholder="100"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Năm xây dựng</label>
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Năm xây dựng
+                    </label>
                     <input
                       type="text"
                       value={formData.thong_tin_tai_san.nam_xay_dung}
@@ -847,13 +1005,15 @@ export default function NaturalDisasterApplicationPage() {
                           nam_xay_dung: e.target.value
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                       placeholder="2020"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Kiểu nhà</label>
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Kiểu nhà
+                    </label>
                     <input
                       type="text"
                       value={formData.thong_tin_tai_san.kieu_nha}
@@ -864,13 +1024,15 @@ export default function NaturalDisasterApplicationPage() {
                           kieu_nha: e.target.value
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                       placeholder="Nhà cấp 4, biệt thự, chung cư..."
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Vật liệu xây dựng</label>
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Vật liệu xây dựng
+                    </label>
                     <input
                       type="text"
                       value={formData.thong_tin_tai_san.vat_lieu_xay_dung}
@@ -881,13 +1043,15 @@ export default function NaturalDisasterApplicationPage() {
                           vat_lieu_xay_dung: e.target.value
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                       placeholder="Bê tông, gạch, gỗ..."
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Số tầng</label>
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Số tầng
+                    </label>
                     <input
                       type="text"
                       value={formData.thong_tin_tai_san.so_tang}
@@ -898,13 +1062,15 @@ export default function NaturalDisasterApplicationPage() {
                           so_tang: e.target.value
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                       placeholder="1"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Tình trạng hiện tại</label>
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Tình trạng hiện tại
+                    </label>
                     <select
                       value={formData.thong_tin_tai_san.tinh_trang_hien_tai}
                       onChange={(e) => setFormData(prev => ({
@@ -914,26 +1080,30 @@ export default function NaturalDisasterApplicationPage() {
                           tinh_trang_hien_tai: e.target.value
                         }
                       }))}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300"
                     >
-                      <option value="Tốt">Tốt</option>
-                      <option value="Khá">Khá</option>
-                      <option value="Trung bình">Trung bình</option>
-                      <option value="Cần sửa chữa">Cần sửa chữa</option>
+                      <option value="Tốt">✅ Tốt</option>
+                      <option value="Khá">👍 Khá</option>
+                      <option value="Trung bình">⚠️ Trung bình</option>
+                      <option value="Cần sửa chữa">🔧 Cần sửa chữa</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Disaster History */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-blue-600" />
+                {/* Disaster History - Enhanced */}
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 p-6 rounded-2xl border-2 border-orange-200 dark:border-orange-800">
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                      <AlertCircle className="w-4 h-4 text-orange-600" />
+                    </div>
                     Lịch Sử Thiên Tai
                   </h3>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Đã từng gặp thiên tai?</label>
+                  <div className="space-y-5">
+                    <div className="group">
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Tài sản đã từng gặp thiên tai?
+                      </label>
                       <select
                         value={formData.lich_su_thiet_hai?.da_gap_thien_tai}
                         onChange={(e) => setFormData(prev => ({
@@ -943,17 +1113,19 @@ export default function NaturalDisasterApplicationPage() {
                             da_gap_thien_tai: e.target.value as 'Co' | 'Khong'
                           }
                         }))}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                        className="w-full px-4 py-3 border-2 border-orange-200 dark:border-orange-800 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 dark:bg-gray-800 transition-all group-hover:border-orange-300"
                       >
-                        <option value="Khong">Không</option>
-                        <option value="Co">Có</option>
+                        <option value="Khong">❌ Không</option>
+                        <option value="Co">✅ Có</option>
                       </select>
                     </div>
 
                     {formData.lich_su_thiet_hai?.da_gap_thien_tai === 'Co' && (
-                      <>
+                      <div className="space-y-5 animate-fadeIn">
                         <div>
-                          <label className="block text-sm font-medium mb-2">Mô tả thiệt hại</label>
+                          <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                            Mô tả chi tiết thiệt hại
+                          </label>
                           <textarea
                             value={formData.lich_su_thiet_hai?.mo_ta_thiet_hai || ''}
                             onChange={(e) => setFormData(prev => ({
@@ -965,14 +1137,16 @@ export default function NaturalDisasterApplicationPage() {
                                 da_boi_thuong: prev.lich_su_thiet_hai?.da_boi_thuong
                               }
                             }))}
-                            rows={3}
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-                            placeholder="Mô tả chi tiết thiệt hại đã xảy ra..."
+                            rows={4}
+                            className="w-full px-4 py-3 border-2 border-orange-200 dark:border-orange-800 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 dark:bg-gray-800 transition-all"
+                            placeholder="Vui lòng mô tả cụ thể loại thiên tai, mức độ thiệt hại, và các thiệt hại về tài sản..."
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2">Năm xảy ra</label>
+                          <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                            Năm xảy ra
+                          </label>
                           <input
                             type="text"
                             value={formData.lich_su_thiet_hai?.nam_xay_ra || ''}
@@ -985,103 +1159,169 @@ export default function NaturalDisasterApplicationPage() {
                                 da_boi_thuong: prev.lich_su_thiet_hai?.da_boi_thuong
                               }
                             }))}
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                            className="w-full px-4 py-3 border-2 border-orange-200 dark:border-orange-800 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 dark:bg-gray-800 transition-all"
                             placeholder="2023"
                           />
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
               </CardContent>
             </Card>
+            </div>
           )}
 
           {currentSection === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                  Gói Bảo Hiểm
+            <div className="animate-fadeIn">
+            <Card className="shadow-xl border-0 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-b">
+                <CardTitle className="flex items-center gap-3 text-2xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <span>Gói Bảo Hiểm</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        {packageData.name}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300">{packageData.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Phí bảo hiểm</p>
-                      <p className="text-2xl font-bold text-blue-600">{formatPrice(packageData.price)}</p>
-                      <p className="text-sm text-gray-500">/{packageData.period}</p>
-                    </div>
+              <CardContent className="space-y-8 p-8">
+                {/* Package Info Card - Enhanced */}
+                <div className="relative bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 p-8 rounded-2xl shadow-2xl text-white overflow-hidden">
+                  {/* Background Pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0" style={{
+                      backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                      backgroundSize: '32px 32px'
+                    }} />
                   </div>
-
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="w-4 h-4 text-blue-600" />
-                      <span>Mức bảo hiểm: <strong>{packageData.coverage}</strong></span>
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex-1">
+                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-4">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-sm font-medium">Gói được chọn</span>
+                        </div>
+                        <h3 className="text-3xl font-bold mb-3">
+                          {packageData.name}
+                        </h3>
+                        <p className="text-blue-100 text-lg leading-relaxed">{packageData.description}</p>
+                      </div>
+                      <div className="hidden md:block ml-6">
+                        <div className="text-right bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                          <p className="text-sm text-blue-100 mb-1">Phí bảo hiểm</p>
+                          <p className="text-4xl font-bold">{formatPrice(packageData.price)}</p>
+                          <p className="text-sm text-blue-100 mt-1">/{packageData.period}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      <span>Thời hạn: <strong>{packageData.period}</strong></span>
+
+                    <div className="grid md:grid-cols-2 gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                          <DollarSign className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-blue-100">Mức bảo hiểm</p>
+                          <p className="font-bold text-lg">{packageData.coverage}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-blue-100">Thời hạn</p>
+                          <p className="font-bold text-lg">{packageData.period}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
+                {/* Benefits - Enhanced */}
                 <div>
-                  <h3 className="font-semibold mb-3">Quyền lợi bảo hiểm:</h3>
-                  <div className="grid gap-2">
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    Quyền lợi bảo hiểm
+                  </h3>
+                  <div className="grid gap-3">
                     {packageData.benefits.map((benefit, idx) => (
-                      <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{benefit}</span>
+                      <div key={idx} className="group flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl border-2 border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+                            <CheckCircle className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">{benefit}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
+                {/* Payment Method - Enhanced */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Phương thức thanh toán</label>
-                  <select
-                    value={formData.phuong_thuc_thanh_toan.phuong_thuc}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      phuong_thuc_thanh_toan: {
-                        ...prev.phuong_thuc_thanh_toan,
-                        phuong_thuc: e.target.value as 'Tien_mat' | 'Chuyen_khoan' | 'The_tin_dung' | 'Vi_dien_tu'
-                      }
-                    }))}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-                  >
-                    <option value="Chuyen_khoan">Chuyển khoản ngân hàng</option>
-                    <option value="The_tin_dung">Thẻ tín dụng</option>
-                    <option value="Vi_dien_tu">Ví điện tử</option>
-                    <option value="Tien_mat">Tiền mặt</option>
-                  </select>
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-blue-600" />
+                    </div>
+                    Phương thức thanh toán
+                  </h3>
+                  <div className="group">
+                    <select
+                      value={formData.phuong_thuc_thanh_toan.phuong_thuc}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        phuong_thuc_thanh_toan: {
+                          ...prev.phuong_thuc_thanh_toan,
+                          phuong_thuc: e.target.value as 'Tien_mat' | 'Chuyen_khoan' | 'The_tin_dung' | 'Vi_dien_tu'
+                        }
+                      }))}
+                      className="w-full px-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-800 transition-all group-hover:border-blue-300 text-base font-medium"
+                    >
+                      <option value="Chuyen_khoan">🏦 Chuyển khoản ngân hàng</option>
+                      <option value="The_tin_dung">💳 Thẻ tín dụng</option>
+                      <option value="Vi_dien_tu">📱 Ví điện tử (MoMo, ZaloPay...)</option>
+                      <option value="Tien_mat">💵 Tiền mặt</option>
+                    </select>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+            </div>
           )}
 
           {currentSection === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="w-6 h-6 text-blue-600" />
-                  Hình Ảnh Tài Sản & Xác Nhận
+            <div className="animate-fadeIn">
+            <Card className="shadow-xl border-0 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-b">
+                <CardTitle className="flex items-center gap-3 text-2xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Camera className="w-6 h-6 text-white" />
+                  </div>
+                  <span>Hình Ảnh Tài Sản & Xác Nhận</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-8 p-8">
+                {/* Image Upload - Enhanced */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Tải lên hình ảnh tài sản (tối thiểu 4 góc)
-                  </label>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                      <Camera className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    Hình ảnh tài sản (tối thiểu 4 góc)
+                  </h3>
+                  
+                  <div className="relative border-2 border-dashed border-indigo-300 dark:border-indigo-700 rounded-2xl p-10 text-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 hover:border-indigo-400 dark:hover:border-indigo-600 transition-all group overflow-hidden">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 opacity-5">
+                      <div className="absolute inset-0" style={{
+                        backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
+                        backgroundSize: '24px 24px'
+                      }} />
+                    </div>
+                    
                     <input
                       type="file"
                       multiple
@@ -1092,118 +1332,175 @@ export default function NaturalDisasterApplicationPage() {
                     />
                     <label
                       htmlFor="image-upload"
-                      className="cursor-pointer flex flex-col items-center"
+                      className="cursor-pointer flex flex-col items-center relative z-10"
                     >
-                      <Upload className="w-12 h-12 text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Click để tải ảnh hoặc kéo thả vào đây
+                      <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-indigo-500/30 group-hover:scale-110 transition-transform">
+                        <Upload className="w-10 h-10 text-white" />
+                      </div>
+                      <span className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                        Tải lên hình ảnh tài sản
                       </span>
-                      <span className="text-xs text-gray-500 mt-1">
-                        Hỗ trợ: JPG, PNG, GIF (Tối đa 10MB/ảnh)
+                      <span className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Click để chọn file hoặc kéo thả vào đây
+                      </span>
+                      <span className="text-xs text-gray-500 mt-2 px-4 py-2 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                        Hỗ trợ: JPG, PNG, GIF • Tối đa 10MB/ảnh
                       </span>
                     </label>
                   </div>
 
                   {uploadedImages.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 animate-fadeIn">
                       {uploadedImages.map((img, idx) => (
                         <div key={idx} className="relative group">
-                          <img
-                            src={img}
-                            alt={`Tài sản ${idx + 1}`}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(idx)}
-                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                          <div className="aspect-square rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 group-hover:border-indigo-400 dark:group-hover:border-indigo-600 transition-all shadow-lg">
+                            <img
+                              src={img}
+                              alt={`Tài sản ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors rounded-xl flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => removeImage(idx)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-xl hover:bg-red-600 hover:scale-110 transform"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            Ảnh {idx + 1}
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-                <div className="border-t pt-6">
-                  <h3 className="font-semibold mb-4">Xác nhận thông tin</h3>
+                {/* Confirmation Summary - Enhanced */}
+                <div>
+                  <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    Xác nhận thông tin
+                  </h3>
                   
-                  <div className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Họ tên:</span>
-                      <span className="font-medium">{formData.chu_tai_san.thong_tin_ca_nhan.ho_ten}</span>
+                  <div className="space-y-4">
+                    {/* Info Card */}
+                    <div className="bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-950/20 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start pb-3 border-b border-gray-200 dark:border-gray-700">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Họ tên</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{formData.chu_tai_san.thong_tin_ca_nhan.ho_ten}</span>
+                        </div>
+                        <div className="flex justify-between items-start pb-3 border-b border-gray-200 dark:border-gray-700">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Số CCCD</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{formData.chu_tai_san.thong_tin_ca_nhan.giay_to.so}</span>
+                        </div>
+                        <div className="flex justify-between items-start pb-3 border-b border-gray-200 dark:border-gray-700">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Địa chỉ tài sản</span>
+                          <span className="font-bold text-right text-gray-900 dark:text-white max-w-xs">{formData.thong_tin_tai_san.dia_chi_tai_san}</span>
+                        </div>
+                        <div className="flex justify-between items-start pb-3 border-b border-gray-200 dark:border-gray-700">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Giá trị tài sản</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{formatPrice(Number(formData.thong_tin_tai_san.gia_tri_uoc_tinh))}</span>
+                        </div>
+                        <div className="pt-3">
+                          <div className="flex justify-between items-start mb-3">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Gói bảo hiểm</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400">{packageData.name}</span>
+                          </div>
+                          <div className="flex justify-between items-start">
+                            <span className="text-base font-semibold text-gray-900 dark:text-white">Phí bảo hiểm</span>
+                            <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">{formatPrice(packageData.price)}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Số CCCD:</span>
-                      <span className="font-medium">{formData.chu_tai_san.thong_tin_ca_nhan.giay_to.so}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Địa chỉ tài sản:</span>
-                      <span className="font-medium text-right">{formData.thong_tin_tai_san.dia_chi_tai_san}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Giá trị tài sản:</span>
-                      <span className="font-medium">{formatPrice(Number(formData.thong_tin_tai_san.gia_tri_uoc_tinh))}</span>
-                    </div>
-                    <div className="flex justify-between border-t pt-3">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Gói bảo hiểm:</span>
-                      <span className="font-medium">{packageData.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Phí bảo hiểm:</span>
-                      <span className="font-bold text-blue-600">{formatPrice(packageData.price)}</span>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 rounded-r-lg">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
-                        <p className="font-semibold mb-1">Lưu ý quan trọng:</p>
-                        <ul className="space-y-1 ml-4">
-                          <li>• Vui lòng kiểm tra kỹ thông tin trước khi xác nhận</li>
-                          <li>• Thông tin sai lệch có thể ảnh hưởng đến quá trình bồi thường</li>
-                          <li>• Hợp đồng có hiệu lực sau 7 ngày kể từ ngày thanh toán</li>
-                        </ul>
+                    {/* Important Notice */}
+                    <div className="relative bg-gradient-to-r from-blue-500 to-cyan-500 p-6 rounded-2xl shadow-xl overflow-hidden">
+                      {/* Background Pattern */}
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute inset-0" style={{
+                          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                          backgroundSize: '20px 20px'
+                        }} />
+                      </div>
+                      
+                      <div className="relative z-10 flex items-start gap-4 text-white">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                            <AlertCircle className="w-6 h-6" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-bold text-lg mb-3">Lưu ý quan trọng</p>
+                          <ul className="space-y-2 text-sm text-blue-50">
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                              <span>Vui lòng kiểm tra kỹ tất cả thông tin trước khi xác nhận</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                              <span>Thông tin sai lệch có thể ảnh hưởng đến quá trình bồi thường</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                              <span>Hợp đồng có hiệu lực sau 7 ngày kể từ ngày thanh toán thành công</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                              <span>Bạn sẽ nhận được email xác nhận và hợp đồng điện tử sau khi hoàn tất</span>
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+            </div>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8">
+          {/* Enhanced Navigation Buttons */}
+          <div className="flex justify-between items-center mt-10 gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={handleBack}
               disabled={currentSection === 0}
-              className="flex items-center gap-2"
+              className="group flex items-center gap-2 px-8 py-6 text-base font-semibold rounded-xl border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               Quay lại
             </Button>
 
             {currentSection < sections.length - 1 ? (
               <Button
                 type="submit"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                className="group flex items-center gap-2 px-8 py-6 text-base font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all hover:-translate-y-0.5"
               >
                 Tiếp tục
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             ) : (
               <Button
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                className="group relative flex items-center gap-3 px-10 py-6 text-base font-bold rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-xl hover:shadow-2xl hover:shadow-green-500/50 transition-all hover:-translate-y-0.5 overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Đang xử lý...' : 'Xác nhận & Thanh toán'}
-                <CheckCircle className="w-4 h-4" />
+                {/* Shimmer Effect */}
+                {!isSubmitting && (
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                )}
+                
+                <span className="relative z-10">{isSubmitting ? 'Đang xử lý...' : 'Xác nhận & Thanh toán'}</span>
+                {!isSubmitting && <CheckCircle className="w-5 h-5 relative z-10" />}
               </Button>
             )}
           </div>

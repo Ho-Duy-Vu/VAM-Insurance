@@ -68,7 +68,7 @@ export const insurancePackages: InsurancePackage[] = [
     type: 'health',
     name: 'Bảo Hiểm Sức Khỏe Gia Đình',
     shortName: 'Sức Khỏe Gia Đình',
-    description: 'Bảo vệ sức khỏe toàn diện cho cả gia đình với mạng lưới bệnh viện rộng khắp.',
+    description: 'Bảo vệ sức khỏe toàn diện cho cả gia đình với mạng lưới bệnh viện rộng khắp và quyền lợi đặc biệt cho vùng thiên tai.',
     price: 3500000,
     period: '1 năm',
     coverage: '300.000.000 VNĐ/người/năm',
@@ -79,7 +79,9 @@ export const insurancePackages: InsurancePackage[] = [
       'Nha khoa: 10 triệu',
       'Khám sức khỏe định kỳ miễn phí',
       'Bảo hiểm tới 6 thành viên gia đình',
-      'Dịch vụ cấp cứu 24/7'
+      'Dịch vụ cấp cứu 24/7',
+      '🌊 Hỗ trợ y tế sau thiên tai: 50 triệu/gia đình',
+      '🏥 Ưu tiên cấp cứu vùng bão lũ'
     ],
     icon: 'Users',
     color: 'green',
@@ -89,6 +91,53 @@ export const insurancePackages: InsurancePackage[] = [
       'Sổ hộ khẩu (chứng minh quan hệ)',
       'Giấy khai sinh con (nếu có)',
       'Khai báo sức khỏe ban đầu'
+    ],
+    detailedBenefits: {
+      medicalCare: {
+        title: 'Chăm Sóc Y Tế Toàn Diện',
+        items: [
+          { name: 'Nội trú tại bệnh viện', coverage: '300 triệu/người/năm', description: 'Chi phí giường bệnh, thuốc men, phẫu thuật' },
+          { name: 'Ngoại trú', coverage: '50 triệu/người/năm', description: 'Khám bệnh, xét nghiệm, chẩn đoán hình ảnh' },
+          { name: 'Cấp cứu 24/7', coverage: '100 triệu/lần', description: 'Xe cứu thương, hồi sức cấp cứu' },
+          { name: 'Chăm sóc đặc biệt', coverage: '200 triệu', description: 'ICU, CCU, phòng hồi sức' }
+        ]
+      },
+      maternityAndDental: {
+        title: 'Thai Sản & Nha Khoa',
+        items: [
+          { name: 'Thai sản', coverage: '30 triệu', description: 'Khám thai, sinh thường, mổ đẻ' },
+          { name: 'Biến chứng thai sản', coverage: '50 triệu', description: 'Điều trị biến chứng mẹ và bé' },
+          { name: 'Nha khoa cơ bản', coverage: '10 triệu/năm', description: 'Nhổ răng, trám răng, cạo vôi' },
+          { name: 'Nha khoa phức tạp', coverage: '20 triệu', description: 'Phẫu thuật hàm mặt, implant (50%)' }
+        ]
+      },
+      disasterSupport: {
+        title: '🌊 Hỗ Trợ Đặc Biệt Vùng Thiên Tai',
+        items: [
+          { name: 'Cấp cứu thiên tai', coverage: '50 triệu/gia đình', description: 'Chi phí y tế khi bị thương do bão, lũ' },
+          { name: 'Điều trị bệnh sau lũ', coverage: '30 triệu/người', description: 'Bệnh da liễu, tiêu chảy, sốt xuất huyết' },
+          { name: 'Tâm lý sau chấn thương', coverage: '20 triệu', description: 'Tư vấn, điều trị stress sau thiên tai' },
+          { name: 'Vaccine phòng bệnh', coverage: 'Miễn phí', description: 'Tiêm chủng phòng dịch bệnh sau lũ' }
+        ]
+      },
+      preventiveCare: {
+        title: 'Chăm Sóc Dự Phòng',
+        items: [
+          { name: 'Khám sức khỏe tổng quát', coverage: 'Miễn phí/năm', description: 'Toàn bộ thành viên được khám định kỳ' },
+          { name: 'Xét nghiệm máu', coverage: 'Miễn phí', description: 'Tổng phân tích máu, đường huyết, mỡ máu' },
+          { name: 'Chẩn đoán hình ảnh', coverage: '5 triệu', description: 'X-quang, siêu âm, CT scan' },
+          { name: 'Tư vấn dinh dưỡng', coverage: 'Miễn phí', description: 'Chuyên gia tư vấn chế độ ăn phù hợp' }
+        ]
+      }
+    },
+    exclusions: [
+      'Bệnh có sẵn trước khi tham gia (trừ khai báo và được chấp nhận)',
+      'Điều trị thẩm mỹ, chỉnh hình không do tai nạn',
+      'Chữa trị liên quan đến HIV/AIDS',
+      'Tự gây thương tích, tự tử',
+      'Sử dụng ma túy, chất kích thích',
+      'Điều trị tại nước ngoài (trừ cấp cứu)',
+      'Chi phí vượt giới hạn quyền lợi'
     ]
   },
   {

@@ -9,7 +9,11 @@ from decouple import config
 
 # Use API key from environment variable
 GEMINI_API_KEY = config('GEMINI_API_KEY')
+
+# ⚡ OPTIMIZED: Initialize client once at module import for fastest performance
+print("⚡ Initializing Gemini chat client at startup...")
 client = genai.Client(api_key=GEMINI_API_KEY)
+print("✅ Chat client ready")
 
 # Insurance Chatbot Prompt
 INSURANCE_CHATBOT_PROMPT = """Bạn là AI Tư vấn viên bảo hiểm chuyên nghiệp của công ty ADE Insurance.
@@ -152,12 +156,12 @@ async def chat_with_insurance_advisor(
         if context:
             print(f"   📋 Context: Region={region}, Packages={len(recommended_packages)}")
         
-        # Call Gemini API
+        # Call Gemini API with optimized configuration
         response = client.models.generate_content(
             model='gemini-2.5-flash-lite',
             contents=full_prompt,
             config=types.GenerateContentConfig(
-                temperature=0.7,  # More creative for conversation
+                temperature=0.7,
                 top_p=0.9,
                 top_k=40,
                 max_output_tokens=1024

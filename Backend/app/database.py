@@ -11,10 +11,15 @@ import os
 # SQLite database URL
 DATABASE_URL = "sqlite:///./ade.db"
 
-# Create SQLite engine
+# 🚀 OPTIMIZED: Connection pooling for better performance
 engine = create_engine(
     DATABASE_URL, 
-    connect_args={"check_same_thread": False}  # Needed for SQLite
+    connect_args={"check_same_thread": False},  # Needed for SQLite
+    pool_size=20,  # Increase pool size for concurrent requests
+    max_overflow=30,  # Allow up to 30 extra connections
+    pool_pre_ping=True,  # Verify connections before using
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    echo=False  # Disable SQL logging for better performance
 )
 
 # Create sessionmaker
