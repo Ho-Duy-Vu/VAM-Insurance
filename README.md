@@ -20,9 +20,8 @@
 
 ### 🎥 YouTube Demo
 
-[![VAM Insurance Demo](https://img.shields.io/badge/▶️_Xem_Demo_Trên_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)]([https://www.youtube.com/watch?v=YOUR_VIDEO_ID](https://youtu.be/iPgthVh4_4k?si=0KfPDx3UUM9nl2nt))
+[![VAM Insurance Demo](https://img.shields.io/badge/▶️_Xem_Demo_Trên_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)]((https://youtu.be/iPgthVh4_4k?si=0KfPDx3UUM9nl2nt))
 
-> **Lưu ý:** Thay `YOUR_VIDEO_ID` bằng ID video YouTube thực tế của bạn
 
 ### 🎯 Các Tính Năng Demo
 
